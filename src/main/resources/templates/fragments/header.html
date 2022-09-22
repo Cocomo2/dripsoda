@@ -1,8 +1,8 @@
 <!--suppress HtmlRequiredTitleElement, HtmlUnknownTag, RequiredAttributes -->
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<header class="_header" th:fragment="content">
-    <div class="content-container">
+<header class="_header _content-wrapper" th:fragment="content">
+    <div class="_content-container content-container">
         <a class="logo-container" th:href="@{/}">
             <img alt="드립소다" class="logo" th:src="@{/resources/images/_logo.svg}">
         </a>
@@ -26,10 +26,10 @@
         </form>
         <ul class="side-menu">
             <li class="item">
-                <a class="link" th:href="@{/user/login}">로그인</a>
+                <a class="link" th:href="@{/member/userLogin}">로그인</a>
             </li>
             <li class="item">
-                <a class="link" th:href="@{/user/register}">회원가입</a>
+                <a class="link" th:href="@{/member/userRegister}">회원가입</a>
             </li>
             <li class="item button">글쓰기</li>
         </ul>
