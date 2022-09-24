@@ -3,8 +3,8 @@ package com.dripsoda.community.entities.member;
 import java.util.Objects;
 
 public class StatusEntity {
-    public static final String ATTRIBUTE_NAME = "MemberStatus";
-    public static final String ATTRIBUTE_NAME_PLURAL = "MemberStatuses";
+    public static final String ATTRIBUTE_NAME = "memberStatus";
+    public static final String ATTRIBUTE_NAME_PLURAL = "memberStatuses";
 
     public static StatusEntity build() {
         return new StatusEntity();

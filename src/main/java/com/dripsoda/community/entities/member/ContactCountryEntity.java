@@ -3,8 +3,8 @@ package com.dripsoda.community.entities.member;
 import java.util.Objects;
 
 public class ContactCountryEntity {
-    public static final String ATTRIBUTE_NAME = "MemberContactCountry";
-    public static final String ATTRIBUTE_NAME_PLURAL = "MemberContactCountries";
+    public static final String ATTRIBUTE_NAME = "memberContactCountry";
+    public static final String ATTRIBUTE_NAME_PLURAL = "memberContactCountries";
 
     public  static ContactCountryEntity build() {
         return new ContactCountryEntity();

@@ -4,9 +4,8 @@ import java.util.Date;
 import java.util.Objects;
 
 public class UserEntity {
-    public static final String ATTRIBUTE_NAME = "MemberUser";
-    public static final String ATTRIBUTE_NAME_PLURAL = "MemberUsers";
-
+    public static final String ATTRIBUTE_NAME = "memberUser";
+    public static final String ATTRIBUTE_NAME_PLURAL = "memberUsers";
 
     public static UserEntity build() {
         return new UserEntity();
@@ -15,35 +14,34 @@ public class UserEntity {
     private String email;
     private String password;
     private String name;
-    private String contactCountryValue;
+    private String contactCountryCode;
     private String contact;
-    private Date policyTermsAt;
-    private Date policyPrivacyAt;
+    private Date policyTermsAt = new Date();
+    private Date policyPrivacyAt = new Date();
     private Date policyMarketingAt;
     private String statusValue;
-    private Date registeredAt;
-    private Boolean adminFlag;
+    private Date registeredAt = new Date();
+    private boolean isAdmin = false;
 
     public UserEntity() {
     }
 
-    public UserEntity(String email, String password, String name, String contactCountryValue, String contact, Date policyTermsAt, Date policyPrivacyAt, Date policyMarketingAt, String statusValue, Date registeredAt, Boolean adminFlag) {
-
+    public UserEntity(String email, String password, String name, String contactCountryCode, String contact, Date policyTermsAt, Date policyPrivacyAt, Date policyMarketingAt, String statusValue, Date registeredAt, boolean isAdmin) {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.contactCountryValue = contactCountryValue;
+        this.contactCountryCode = contactCountryCode;
         this.contact = contact;
         this.policyTermsAt = policyTermsAt;
         this.policyPrivacyAt = policyPrivacyAt;
         this.policyMarketingAt = policyMarketingAt;
         this.statusValue = statusValue;
         this.registeredAt = registeredAt;
-        this.adminFlag = adminFlag;
+        this.isAdmin = isAdmin;
     }
 
     public String getEmail() {
-        return email;
+        return this.email;
     }
 
     public UserEntity setEmail(String email) {
@@ -52,7 +50,7 @@ public class UserEntity {
     }
 
     public String getPassword() {
-        return password;
+        return this.password;
     }
 
     public UserEntity setPassword(String password) {
@@ -61,7 +59,7 @@ public class UserEntity {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public UserEntity setName(String name) {
@@ -69,17 +67,17 @@ public class UserEntity {
         return this;
     }
 
-    public String getContactCountryValue() {
-        return contactCountryValue;
+    public String getContactCountryCode() {
+        return this.contactCountryCode;
     }
 
-    public UserEntity setContactCountryValue(String contactCountryValue) {
-        this.contactCountryValue = contactCountryValue;
+    public UserEntity setContactCountryCode(String contactCountryCode) {
+        this.contactCountryCode = contactCountryCode;
         return this;
     }
 
     public String getContact() {
-        return contact;
+        return this.contact;
     }
 
     public UserEntity setContact(String contact) {
@@ -88,7 +86,7 @@ public class UserEntity {
     }
 
     public Date getPolicyTermsAt() {
-        return policyTermsAt;
+        return this.policyTermsAt;
     }
 
     public UserEntity setPolicyTermsAt(Date policyTermsAt) {
@@ -97,7 +95,7 @@ public class UserEntity {
     }
 
     public Date getPolicyPrivacyAt() {
-        return policyPrivacyAt;
+        return this.policyPrivacyAt;
     }
 
     public UserEntity setPolicyPrivacyAt(Date policyPrivacyAt) {
@@ -106,7 +104,7 @@ public class UserEntity {
     }
 
     public Date getPolicyMarketingAt() {
-        return policyMarketingAt;
+        return this.policyMarketingAt;
     }
 
     public UserEntity setPolicyMarketingAt(Date policyMarketingAt) {
@@ -115,7 +113,7 @@ public class UserEntity {
     }
 
     public String getStatusValue() {
-        return statusValue;
+        return this.statusValue;
     }
 
     public UserEntity setStatusValue(String statusValue) {
@@ -124,7 +122,7 @@ public class UserEntity {
     }
 
     public Date getRegisteredAt() {
-        return registeredAt;
+        return this.registeredAt;
     }
 
     public UserEntity setRegisteredAt(Date registeredAt) {
@@ -132,12 +130,12 @@ public class UserEntity {
         return this;
     }
 
-    public Boolean getAdminFlag() {
-        return adminFlag;
+    public boolean isAdmin() {
+        return this.isAdmin;
     }
 
-    public UserEntity setAdminFlag(Boolean adminFlag) {
-        this.adminFlag = adminFlag;
+    public UserEntity setAdmin(boolean admin) {
+        isAdmin = admin;
         return this;
     }
 

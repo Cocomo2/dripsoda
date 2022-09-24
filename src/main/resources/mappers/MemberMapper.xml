@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dripsoda.community.mappers.IMemberMapper">
+    <insert id="insertContactAuth"
+            useGeneratedKeys="true"
+            keyColumn="index"
+            keyProperty="index"
+            parameterType="com.dripsoda.community.entities.member.ContactAuthEntity">
+        INSERT INTO `dripsoda_member`.`contact_auths`(`contact`, `code`, `salt`, `created_at`, `expires_at`, `expired_flag`)
+        VALUES (#{contact}, #{code}, #{salt}, #{createdAt}, #{expiresAt}, #{expiredFlag})
+    </insert>
+
+
+    <select id="selectContactAuth"
+            parameterType="com.dripsoda.community.entities.member.ContactAuthEntity"
+            resultType="com.dripsoda.community.entities.member.ContactAuthEntity">
+        SELECT `index`        AS `index`,
+               `contact`      AS `contact`,
+               `code`         AS `code`,
+               `salt`         AS `salt`,
+               `created_at`   AS `createdAt`,
+               `expires_at`   AS `expiresAt`,
+               `expired_flag` AS `expiredFlag`
+        FROM `dripsoda_member`.`contact_auths`
+        WHERE `contact` = #{contact}
+          AND `code` = #{code}
+          AND `salt` = #{salt}
+        LIMIT 1
+    </select>
+
+
+    <update id="updateContactAuthCode"
+            parameterType="com.dripsoda.community.entities.ContactAuthEntity">
+        UPDATE `dripsoda_member`.`contact_auths`
+        SET `created_at`   = #{createdAt},
+            `expires_at`   = #{expiresAt},
+            `expired_flag` = #{isExpired}
+        WHERE `contact` = #{contact}
+          AND `code` = #{code}
+          AND `salt` = #{salt}
+        LIMIT 1
+    </update>
+
+</mapper>
