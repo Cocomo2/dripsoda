@@ -6,9 +6,10 @@ public class ContactCountryEntity {
     public static final String ATTRIBUTE_NAME = "memberContactCountry";
     public static final String ATTRIBUTE_NAME_PLURAL = "memberContactCountries";
 
-    public  static ContactCountryEntity build() {
+    public static ContactCountryEntity build() {
         return new ContactCountryEntity();
     }
+
     private String value;
     private String text;
 
@@ -21,7 +22,7 @@ public class ContactCountryEntity {
     }
 
     public String getValue() {
-        return value;
+        return this.value;
     }
 
     public ContactCountryEntity setValue(String value) {
@@ -30,7 +31,7 @@ public class ContactCountryEntity {
     }
 
     public String getText() {
-        return text;
+        return this.text;
     }
 
     public ContactCountryEntity setText(String text) {
@@ -51,4 +52,3 @@ public class ContactCountryEntity {
         return Objects.hash(value);
     }
 }
-

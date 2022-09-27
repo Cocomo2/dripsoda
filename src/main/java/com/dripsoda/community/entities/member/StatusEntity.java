@@ -22,7 +22,7 @@ public class StatusEntity {
     }
 
     public String getValue() {
-        return value;
+        return this.value;
     }
 
     public StatusEntity setValue(String value) {
@@ -31,7 +31,7 @@ public class StatusEntity {
     }
 
     public String getText() {
-        return text;
+        return this.text;
     }
 
     public StatusEntity setText(String text) {

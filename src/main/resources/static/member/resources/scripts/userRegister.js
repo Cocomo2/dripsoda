@@ -9,36 +9,57 @@ const registerWarning = {
 };
 const functions = {
     checkContactAuthCode: params => {
+        if (registerForm['contactAuthCode'].value === '') {
+            registerWarning.show('인증번호를 입력해 주세요.');
+            registerForm['contactAuthCode'].focus();
+            return;
+        }
+        if (!new RegExp('^(\\d{6})$').test(registerForm['contactAuthCode'].value)) {
+            registerWarning.show('올바른 인증번호를 입력해 주세요.');
+            registerForm['contactAuthCode'].focusAndSelect();
+            return;
+        }
+        cover.show('인증번호를 확인하고 있습니다.\n\n잠시만 기다려 주세요.');
+
         const xhr = new XMLHttpRequest();
         const formData = new FormData();
         formData.append('contact', registerForm['contact'].value);
-        formData.append('salt', registerForm['contactAuthSalt'].value);
         formData.append('code', registerForm['contactAuthCode'].value);
+        formData.append('salt', registerForm['contactAuthSalt'].value);
         xhr.open('POST', './contactAuthCode');
         xhr.onreadystatechange = () => {
             if (xhr.readyState === XMLHttpRequest.DONE) {
+                cover.hide();
                 if (xhr.status >= 200 && xhr.status < 300) {
                     const responseJson = JSON.parse(xhr.responseText);
                     switch (responseJson['result']) {
-                        case 'success':
-                            alert('연락처가 성공적으로 인증되었습니다.');
+                        case 'expired':
+                            registerWarning.show('입력한 인증번호가 만료되었습니다. 인증번호를 다시 요청하여 인증해 주세요.');
+                            registerForm['contact'].removeAttribute('disabled');
+                            registerForm['contactAuthRequestButton'].removeAttribute('disabled');
+                            registerForm['contactAuthCode'].value = '';
                             registerForm['contactAuthCode'].setAttribute('disabled', 'disabled');
+                            registerForm['contactAuthCheckButton'].setAttribute('disabled', 'disabled');
+                            registerForm['contactAuthSalt'].value = '';
+                            registerForm['contact'].focusAndSelect();
                             break;
-                        case 'failure_expired':
-                            alert('해당 인증 번호가 만료되었습니다.\n\n처음부터 다시 시도해 주세요.');
+                        case 'success':
+                            registerForm['contactAuthCode'].setAttribute('disabled', 'disabled');
+                            registerForm['contactAuthCheckButton'].setAttribute('disabled', 'disabled');
+                            registerWarning.show('연락처가 성공적으로 인증되었습니다.');
                             break;
                         default:
-                            alert('인증 번호가 올바르지 않습니다.\n\n다시 한 번 확인해 주세요.');
                             registerForm['contactAuthCode'].focusAndSelect();
+                            registerWarning.show('입력한 인증번호가 올바르지 않습니다.');
                     }
                 } else {
-                    alert('서버와 통신하지 못하였습니다.\n\n잠시후 다시 시도해 주세요.');
+                    registerWarning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+                    registerForm['contactAuthCode'].focusAndSelect();
                 }
             }
         };
         xhr.send(formData);
     },
-
     requestContactAuthCode: params => {
         if (registerForm['contact'].value === '') {
             registerWarning.show('연락처를 입력해 주세요.');
@@ -60,11 +81,15 @@ const functions = {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     const responseJson = JSON.parse(xhr.responseText);
                     switch (responseJson['result']) {
+                        case 'duplicate':
+                            registerWarning.show('해당 연락처는 이미 사용 중입니다.');
+                            registerForm['contact'].focusAndSelect();
+                            break;
                         case 'success':
-                            registerWarning.show('입력하신 연락처로 인증번호를 포함한 문자를 전송하였습니다.');
+                            registerWarning.show('입력하신 연락처로 인증번호를 포함한 문자를 전송하였습니다. 5분 내로 문자로 전송된 인증번호를 확인해 주세요.');
                             registerForm['contactAuthSalt'].value = responseJson['salt'];
-                            registerForm['contact'].setAttribute('disabled','disabled');
-                            registerForm['contactAuthRequestButton'].setAttribute('disabled','disabled');
+                            registerForm['contact'].setAttribute('disabled', 'disabled');
+                            registerForm['contactAuthRequestButton'].setAttribute('disabled', 'disabled');
                             registerForm['contactAuthCode'].removeAttribute('disabled');
                             registerForm['contactAuthCheckButton'].removeAttribute('disabled');
                             registerForm['contactAuthCode'].focusAndSelect();
@@ -83,9 +108,11 @@ const functions = {
     }
 };
 
+let emailChecked = false;
+
 window.document.body.querySelectorAll('[data-func]').forEach(x => {
     x.addEventListener('click', e => {
-        if (typeof(functions[x.dataset.func]) === 'function') {
+        if (typeof (functions[x.dataset.func]) === 'function') {
             functions[x.dataset.func]({
                 element: x,
                 event: e
@@ -104,6 +131,11 @@ registerForm.onsubmit = e => {
     }
     if (!new RegExp('^(?=.{7,50})([\\da-zA-Z_.]{4,})@([\\da-z\\-]{2,}\\.)?([\\da-z\\-]{2,})\\.([a-z]{2,10})(\\.[a-z]{2})?$').test(registerForm['email'].value)) {
         registerWarning.show('올바른 이메일 주소를 입력해 주세요.');
+        registerForm['email'].focusAndSelect();
+        return false;
+    }
+    if (!emailChecked) {
+        registerWarning.show('이메일 중복 검사가 완료되지 않았습니다.');
         registerForm['email'].focusAndSelect();
         return false;
     }
@@ -171,9 +203,76 @@ registerForm.onsubmit = e => {
         registerForm['policyPrivacy'].focus();
         return false;
     }
+    cover.show('회원가입을 진행 중입니다.\n\n잠시만 기다려 주세요.');
+
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('email', registerForm['email'].value);
+    formData.append('password', registerForm['password'].value);
+    formData.append('name', registerForm['name'].value);
+    formData.append('contactCountryValue', registerForm['contactCountryValue'].value);
+    formData.append('contact', registerForm['contact'].value);
+    formData.append('code', registerForm['contactAuthCode'].value);
+    formData.append('salt', registerForm['contactAuthSalt'].value);
+    formData.append('policyMarketing', registerForm['policyMarketing'].checked);
+    xhr.open('POST', './userRegister');
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            cover.hide();
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const responseJson = JSON.parse(xhr.responseText);
+                switch (responseJson['result']) {
+                    case 'success':
+                        window.location.href = './userRegisterDone';
+                        break;
+                    default:
+                        registerWarning.show('알 수 없는 이유로 회원가입하지 못 하였습니다. 잠시 후 다시 시도해 주세요.');
+                }
+            } else {
+                registerWarning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+            }
+        }
+    };
+    xhr.send(formData);
 };
 
 
+registerForm['email'].addEventListener('focusout', e => {
+    if (registerForm['email'].value === '' || !new RegExp('^(?=.{7,50})([\\da-zA-Z_.]{4,})@([\\da-z\\-]{2,}\\.)?([\\da-z\\-]{2,})\\.([a-z]{2,10})(\\.[a-z]{2})?$').test(registerForm['email'].value)) {
+        emailChecked = false;
+        return;
+    }
+    cover.show('이메일 중복 검사 중 입니다.\n\n잠시만 기다려 주세요.');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `./userEmailCheck?email=${registerForm['email'].value}`);
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            cover.hide();
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const responseJson = JSON.parse(xhr.responseText);
+                switch (responseJson['result']) {
+                    case 'success':
+                        registerWarning.hide();
+                        registerForm['password'].focusAndSelect();
+                        emailChecked = true;
+                        break;
+                    case 'duplicate':
+                        registerWarning.show('입력하신 이메일은 이미 사용 중입니다.');
+                        emailChecked = false;
+                        break;
+                    default:
+                        registerWarning.show('알 수 없는 이유로 이메일 중복 검사를 완료하지 못 하였습니다. 잠시 후 다시 시도해 주세요.');
+                        emailChecked = false;
+                }
+            } else {
+                registerWarning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+                emailChecked = false;
+            }
+        }
+    };
+    xhr.send();
+});
 
 
 

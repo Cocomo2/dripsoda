@@ -14,7 +14,7 @@ public class UserEntity {
     private String email;
     private String password;
     private String name;
-    private String contactCountryCode;
+    private String contactCountryValue;
     private String contact;
     private Date policyTermsAt = new Date();
     private Date policyPrivacyAt = new Date();
@@ -26,11 +26,11 @@ public class UserEntity {
     public UserEntity() {
     }
 
-    public UserEntity(String email, String password, String name, String contactCountryCode, String contact, Date policyTermsAt, Date policyPrivacyAt, Date policyMarketingAt, String statusValue, Date registeredAt, boolean isAdmin) {
+    public UserEntity(String email, String password, String name, String contactCountryValue, String contact, Date policyTermsAt, Date policyPrivacyAt, Date policyMarketingAt, String statusValue, Date registeredAt, boolean isAdmin) {
         this.email = email;
         this.password = password;
         this.name = name;
-        this.contactCountryCode = contactCountryCode;
+        this.contactCountryValue = contactCountryValue;
         this.contact = contact;
         this.policyTermsAt = policyTermsAt;
         this.policyPrivacyAt = policyPrivacyAt;
@@ -67,12 +67,12 @@ public class UserEntity {
         return this;
     }
 
-    public String getContactCountryCode() {
-        return this.contactCountryCode;
+    public String getContactCountryValue() {
+        return this.contactCountryValue;
     }
 
-    public UserEntity setContactCountryCode(String contactCountryCode) {
-        this.contactCountryCode = contactCountryCode;
+    public UserEntity setContactCountryValue(String contactCountryValue) {
+        this.contactCountryValue = contactCountryValue;
         return this;
     }
 

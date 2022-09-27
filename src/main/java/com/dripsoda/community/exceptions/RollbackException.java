@@ -3,7 +3,7 @@ package com.dripsoda.community.exceptions;
 import com.dripsoda.community.enums.CommonResult;
 import com.dripsoda.community.interfaces.IResult;
 
-public class RollbackException extends Exception{
+public class RollbackException extends Exception {
     public final IResult result;
 
     public RollbackException() {
@@ -13,6 +13,5 @@ public class RollbackException extends Exception{
     public RollbackException(IResult result) {
         super();
         this.result = result;
-
     }
 }

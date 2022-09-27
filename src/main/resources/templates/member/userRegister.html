@@ -30,8 +30,12 @@
         </label>
         <label class="_object-label">
             <span hidden>연락처 국가 코드</span>
-            <select class="_object-input" name="contactCountryCode">
-                <option value="082" selected>+82 대한민국</option>
+            <select class="_object-input" name="contactCountryValue">
+                <!--/*@thymesVar id="memberContactCountries" type="com.dripsoda.community.entities.member.ContactCountryEntity[]"*/-->
+                <option th:each="memberContactCountry : ${memberContactCountries}"
+                        th:value="${memberContactCountry.getValue()}"
+                        th:selected="${memberContactCountry.getValue().equals('082')}"
+                        th:text="${'+' + memberContactCountry.getValue() + ' ' + memberContactCountry.getText()}"></option>
             </select>
         </label>
         <label class="_object-label contact">

@@ -17,23 +17,23 @@ public class ContactAuthEntity {
     private String salt;
     private Date createdAt = new Date();
     private Date expiresAt;
-    private Boolean expiredFlag;
+    private boolean isExpired = false;
 
     public ContactAuthEntity() {
     }
 
-    public ContactAuthEntity(int index, String contact, String code, String salt, Date createdAt, Date expiresAt, Boolean expiredFlag) {
+    public ContactAuthEntity(int index, String contact, String code, String salt, Date createdAt, Date expiresAt, boolean isExpired) {
         this.index = index;
         this.contact = contact;
         this.code = code;
         this.salt = salt;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
-        this.expiredFlag = expiredFlag;
+        this.isExpired = isExpired;
     }
 
     public int getIndex() {
-        return index;
+        return this.index;
     }
 
     public ContactAuthEntity setIndex(int index) {
@@ -42,7 +42,7 @@ public class ContactAuthEntity {
     }
 
     public String getContact() {
-        return contact;
+        return this.contact;
     }
 
     public ContactAuthEntity setContact(String contact) {
@@ -51,7 +51,7 @@ public class ContactAuthEntity {
     }
 
     public String getCode() {
-        return code;
+        return this.code;
     }
 
     public ContactAuthEntity setCode(String code) {
@@ -60,7 +60,7 @@ public class ContactAuthEntity {
     }
 
     public String getSalt() {
-        return salt;
+        return this.salt;
     }
 
     public ContactAuthEntity setSalt(String salt) {
@@ -69,7 +69,7 @@ public class ContactAuthEntity {
     }
 
     public Date getCreatedAt() {
-        return createdAt;
+        return this.createdAt;
     }
 
     public ContactAuthEntity setCreatedAt(Date createdAt) {
@@ -78,7 +78,7 @@ public class ContactAuthEntity {
     }
 
     public Date getExpiresAt() {
-        return expiresAt;
+        return this.expiresAt;
     }
 
     public ContactAuthEntity setExpiresAt(Date expiresAt) {
@@ -86,15 +86,14 @@ public class ContactAuthEntity {
         return this;
     }
 
-    public Boolean getExpiredFlag() {
-        return expiredFlag;
+    public boolean isExpired() {
+        return this.isExpired;
     }
 
-    public ContactAuthEntity setExpiredFlag(Boolean expiredFlag) {
-        this.expiredFlag = expiredFlag;
+    public ContactAuthEntity setExpired(boolean expired) {
+        isExpired = expired;
         return this;
     }
-
 
     @Override
     public boolean equals(Object o) {
