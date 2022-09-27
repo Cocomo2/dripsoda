@@ -26,7 +26,7 @@ const functions = {
         formData.append('contact', registerForm['contact'].value);
         formData.append('code', registerForm['contactAuthCode'].value);
         formData.append('salt', registerForm['contactAuthSalt'].value);
-        xhr.open('POST', './contactAuthCode');
+        xhr.open('POST', './userRegisterAuth');
         xhr.onreadystatechange = () => {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 cover.hide();
@@ -74,7 +74,7 @@ const functions = {
         cover.show('인증번호를 전송하고 있습니다.\n\n잠시만 기다려 주세요.');
 
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', `./contactAuthCode?contact=${registerForm['contact'].value}`);
+        xhr.open('GET', `./userRegisterAuth?contact=${registerForm['contact'].value}`);
         xhr.onreadystatechange = () => {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 cover.hide();

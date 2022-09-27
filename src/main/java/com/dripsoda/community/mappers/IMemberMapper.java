@@ -19,5 +19,7 @@ public interface IMemberMapper {
 
     UserEntity selectUserByContact(UserEntity user);
 
+    UserEntity selectUserByNameContact(UserEntity user);
+
     int updateContactAuth(ContactAuthEntity contactAuth);
 }

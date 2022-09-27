@@ -34,7 +34,7 @@ public class MemberService {
     }
 
     @Transactional
-    public IResult createContactAuth(ContactAuthEntity contactAuth) throws
+    protected IResult createContactAuth(ContactAuthEntity contactAuth) throws
             InvalidKeyException,
             IOException,
             NoSuchAlgorithmException,
@@ -42,9 +42,7 @@ public class MemberService {
         if (contactAuth.getContact() == null || !contactAuth.getContact().matches(MemberRegex.USER_CONTACT)) {
             return CommonResult.FAILURE;
         }
-        if (this.memberMapper.selectUserByContact(UserEntity.build().setContact(contactAuth.getContact())) != null) {
-            return CommonResult.DUPLICATE;
-        }
+
         Date createdAt = new Date();
         Date expiresAt = DateUtils.addMinutes(createdAt, 5);
         String code = RandomStringUtils.randomNumeric(6);
@@ -64,7 +62,7 @@ public class MemberService {
             // return CommonResult.FAILURE;
             throw new RollbackException();
         }
-        String smsContent = String.format("[드립소다] 회원가입 인증번호 [%s]를 입력해 주세요.", contactAuth.getCode());
+        String smsContent = String.format("[드립소다] 인증번호 [%s]를 입력해 주세요.", contactAuth.getCode());
         if (this.smsComponent.send(contactAuth.getContact(), smsContent) != 202) {
             throw new RollbackException();
         }
@@ -140,5 +138,89 @@ public class MemberService {
 
     public ContactCountryEntity[] getContactCountries() {
         return this.memberMapper.selectContactCountries();
+
+    }
+
+    @Transactional
+    public IResult recoverUserEmailAuth(UserEntity user, ContactAuthEntity contactAuth) throws
+            IOException,
+            NoSuchAlgorithmException,
+            InvalidKeyException,
+            RollbackException {
+        if (user.getName() == null ||
+                !user.getName().matches(MemberRegex.USER_NAME) ||
+                user.getContact() == null ||
+                !user.getContact().matches(MemberRegex.USER_CONTACT)) {
+            return CommonResult.FAILURE;
+        }
+        user = this.memberMapper.selectUserByNameContact(user);
+        if (user == null) {
+            return CommonResult.FAILURE;
+        }
+        contactAuth.setContact(user.getContact());
+        if(this.createContactAuth(contactAuth) != CommonResult.SUCCESS) {
+            throw new RollbackException();
+        }
+        return CommonResult.SUCCESS;
+    }
+
+    @Transactional
+    public IResult registerAuth(ContactAuthEntity contactAuth) throws
+            IOException,
+            NoSuchAlgorithmException,
+            InvalidKeyException,
+            RollbackException {
+        if (contactAuth.getContact() == null || !contactAuth.getContact().matches(MemberRegex.USER_CONTACT)) {
+            return CommonResult.FAILURE;
+        }
+        if (this.memberMapper.selectUserByContact(UserEntity.build().setContact(contactAuth.getContact())) != null) {
+            return CommonResult.DUPLICATE;
+        }
+        if(this.createContactAuth(contactAuth) != CommonResult.SUCCESS) {
+            throw new RollbackException();
+        }
+        return CommonResult.SUCCESS;
+    }
+
+    @Transactional
+    public IResult findUserEmail(ContactAuthEntity contactAuth , UserEntity user) {
+        if (contactAuth.getContact() == null ||
+                contactAuth.getCode() == null ||
+                contactAuth.getSalt() == null ||
+                !contactAuth.getContact().matches(MemberRegex.USER_CONTACT) ||
+                !contactAuth.getCode().matches(MemberRegex.CONTACT_AUTH_CODE) ||
+                !contactAuth.getSalt().matches(MemberRegex.CONTACT_AUTH_SALT)) {
+            return CommonResult.FAILURE;
+        }
+        contactAuth = this.memberMapper.selectContactAuthByContactCodeSalt(contactAuth);
+        if (contactAuth == null || !contactAuth.isExpired()) {
+            return CommonResult.FAILURE;
+        }
+        UserEntity foundUser = this.memberMapper.selectUserByContact(user.setContact(contactAuth.getContact()));
+        if (foundUser == null) {
+            return CommonResult.FAILURE;
+        }
+        user.setEmail(foundUser.getEmail());
+        return CommonResult.SUCCESS;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

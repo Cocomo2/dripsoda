@@ -49,6 +49,55 @@ public class MemberController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "userRecoverEmail", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String postUserRecoverEmail(ContactAuthEntity contactAuth) {
+        contactAuth.setIndex(-1)
+                .setCreatedAt(null)
+                .setExpiresAt(null)
+                .setExpired(false);
+        UserEntity user = UserEntity.build();
+        IResult result = this.memberService.findUserEmail(contactAuth, user);
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        if (result == CommonResult.SUCCESS) {
+            responseJson.put("email", user.getEmail());
+        }
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "userRecoverEmailAuth", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public String getUserRecoverEmailAuth(UserEntity user) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+        user.setEmail(null)
+                .setPassword(null)
+                .setPolicyTermsAt(null)
+                .setPolicyPrivacyAt(null)
+                .setPolicyMarketingAt(null)
+                .setStatusValue(null)
+                .setRegisteredAt(null)
+                .setAdmin(false);
+        IResult result;
+        ContactAuthEntity contactAuth = ContactAuthEntity.build();
+        try {
+            result = this.memberService.recoverUserEmailAuth(user, contactAuth);
+        } catch (RollbackException ex) {
+            result = CommonResult.FAILURE;
+        }
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        if (result == CommonResult.SUCCESS) {
+            responseJson.put("salt", contactAuth.getSalt());
+        }
+        return  responseJson.toString();
+    }
+    @RequestMapping(value = "userRecoverEmailAuth", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String postUserRecoverEmailAuth(ContactAuthEntity contactAuth) {
+        return this.postUserRegisterAuth(contactAuth);
+    }
+
+
     @RequestMapping(value = "userLogin", method = RequestMethod.GET)
     public ModelAndView getUserLogin(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
                                      ModelAndView modelAndView) {
@@ -104,9 +153,9 @@ public class MemberController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "contactAuthCode", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "userRegisterAuth", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public String getContactAuthCode(ContactAuthEntity contactAuth) throws
+    public String getUserRegisterAuth(ContactAuthEntity contactAuth) throws
             InvalidKeyException,
             IOException,
             NoSuchAlgorithmException {
@@ -118,7 +167,7 @@ public class MemberController {
                 .setExpired(false);
         IResult result;
         try {
-            result = this.memberService.createContactAuth(contactAuth);
+            result = this.memberService.registerAuth(contactAuth);
         } catch (RollbackException ex) {
             result = ex.result;
         }
@@ -130,9 +179,9 @@ public class MemberController {
         return responseJson.toString();
     }
 
-    @RequestMapping(value = "contactAuthCode", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "userRegisterAuth", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String postContactAuthCode(ContactAuthEntity contactAuth) {
+    public String postUserRegisterAuth(ContactAuthEntity contactAuth) {
         contactAuth.setIndex(-1)
                 .setCreatedAt(null)
                 .setExpiresAt(null)

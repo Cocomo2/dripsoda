@@ -10,7 +10,12 @@
 <body class="_layout-hmf">
 <th:block th:replace="~{fragments/header.html :: content}"></th:block>
 <main class="_main main">
-    <form class="recover-email-form" id="recoverEmailForm">
+    <div class="email-container" id="emailContainer">
+        <h2 class="title">이메일 찾기</h2>
+        <span class="message">요청하신 이메일은 <b class="email" id="email"></b></span>
+        <a class="link _object-button" th:href="@{/member/userLogin}">로그인</a>
+    </div>
+    <form class="recover-email-form visible" id="recoverEmailForm">
         <h2 class="title">이메일 찾기</h2>
         <label class="_object-label">
             <span hidden>이름</span>
@@ -37,7 +42,7 @@
             <input class="_object-input input" disabled maxlength="6" name="contactAuthCode" placeholder="인증번호" type="text">
             <input class="_object-button" disabled name="contactAuthCheckButton" type="button" value="인증번호 확인" data-func="checkContactAuthCode">
         </label>
-        <span class="warning" id="registerWarning"></span>
+        <span class="warning" id="recoverEmailWarning"></span>
         <input class="_object-button" name="emailRecoverButton" type="submit" value="이메일 찾기">
     </form>
 </main>

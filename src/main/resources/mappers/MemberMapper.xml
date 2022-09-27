@@ -12,8 +12,11 @@
 
     <insert id="insertUser"
             parameterType="com.dripsoda.community.entities.member.UserEntity">
-        INSERT INTO `dripsoda_member`.`users` (`email`, `password`, `name`, `contact_country_value`, `contact`, `policy_terms_at`, `policy_privacy_at`, `policy_marketing_at`, `status_value`, `registered_at`, `admin_flag`)
-        VALUES (#{email}, #{password}, #{name}, #{contactCountryValue}, #{contact}, #{policyTermsAt}, #{policyPrivacyAt}, #{policyMarketingAt}, #{statusValue}, #{registeredAt}, #{isAdmin})
+        INSERT INTO `dripsoda_member`.`users` (`email`, `password`, `name`, `contact_country_value`, `contact`,
+                                               `policy_terms_at`, `policy_privacy_at`, `policy_marketing_at`,
+                                               `status_value`, `registered_at`, `admin_flag`)
+        VALUES (#{email}, #{password}, #{name}, #{contactCountryValue}, #{contact}, #{policyTermsAt},
+                #{policyPrivacyAt}, #{policyMarketingAt}, #{statusValue}, #{registeredAt}, #{isAdmin})
     </insert>
 
     <select id="selectContactAuthByContactCodeSalt"
@@ -57,6 +60,26 @@
                `admin_flag`            AS `isAdmin`
         FROM `dripsoda_member`.`users`
         WHERE `email` = #{email}
+        LIMIT 1
+    </select>
+
+    <select id="selectUserByNameContact"
+            parameterType="com.dripsoda.community.entities.member.UserEntity"
+            resultType="com.dripsoda.community.entities.member.UserEntity">
+        SELECT `email`                 AS `email`,
+               `password`              AS `password`,
+               `name`                  AS `name`,
+               `contact_country_value` AS `contactCountryValue`,
+               `contact`               AS `contact`,
+               `policy_terms_at`       AS `policyTermsAt`,
+               `policy_privacy_at`     AS `policyPrivacyAt`,
+               `policy_marketing_at`   AS `policyMarketingAt`,
+               `status_value`          AS `statusValue`,
+               `registered_at`         AS `registeredAt`,
+               `admin_flag`            AS `isAdmin`
+        FROM `dripsoda_member`.`users`
+        WHERE `name` = #{name}
+          AND `contact` = #{contact}
         LIMIT 1
     </select>
 
