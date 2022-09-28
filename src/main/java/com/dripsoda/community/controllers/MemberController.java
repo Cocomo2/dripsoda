@@ -2,6 +2,7 @@ package com.dripsoda.community.controllers;
 
 import com.dripsoda.community.entities.member.ContactAuthEntity;
 import com.dripsoda.community.entities.member.ContactCountryEntity;
+import com.dripsoda.community.entities.member.EmailAuthEntity;
 import com.dripsoda.community.entities.member.UserEntity;
 import com.dripsoda.community.enums.CommonResult;
 import com.dripsoda.community.exceptions.RollbackException;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.mail.MessagingException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -68,7 +70,10 @@ public class MemberController {
 
     @RequestMapping(value = "userRecoverEmailAuth", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public String getUserRecoverEmailAuth(UserEntity user) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public String getUserRecoverEmailAuth(UserEntity user) throws
+            IOException,
+            InvalidKeyException,
+            NoSuchAlgorithmException {
         user.setEmail(null)
                 .setPassword(null)
                 .setPolicyTermsAt(null)
@@ -89,14 +94,78 @@ public class MemberController {
         if (result == CommonResult.SUCCESS) {
             responseJson.put("salt", contactAuth.getSalt());
         }
-        return  responseJson.toString();
+        return responseJson.toString();
     }
+
     @RequestMapping(value = "userRecoverEmailAuth", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String postUserRecoverEmailAuth(ContactAuthEntity contactAuth) {
-        return this.postUserRegisterAuth(contactAuth);
+        return this.postUserRegisterAuth(contactAuth); // TODO : Contact authentication of register and email recovery is merged.
     }
 
+    @RequestMapping(value = "userRecoverPassword", method = RequestMethod.GET)
+    public ModelAndView getUserRecoverPassword(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                                               ModelAndView modelAndView) {
+        if (user != null) {
+            modelAndView.setViewName("redirect:/");
+            return modelAndView;
+        }
+        modelAndView.setViewName("member/userRecoverPassword");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "userRecoverPassword", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String postUserRecoverPassword(UserEntity user) throws
+            MessagingException,
+            RollbackException {
+        user.setPassword(null)
+                .setName(null)
+                .setContactCountryValue(null)
+                .setContact(null)
+                .setPolicyTermsAt(null)
+                .setPolicyPrivacyAt(null)
+                .setPolicyMarketingAt(null)
+                .setStatusValue(null)
+                .setRegisteredAt(null)
+                .setAdmin(false);
+        IResult result = this.memberService.recoverUserPassword(user);
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "userResetPassword", method = RequestMethod.GET)
+    public ModelAndView getUserResetPassword(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                                             ModelAndView modelAndView) {
+        if (user != null) {
+            modelAndView.setViewName("redirect:/");
+            return modelAndView;
+        }
+        modelAndView.setViewName("member/userResetPassword");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "userResetPassword", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String postUserResetPassword(EmailAuthEntity emailAuth,
+                                        UserEntity user) {
+        emailAuth.setEmail(null)
+                .setCreatedAt(null)
+                .setExpiresAt(null)
+                .setExpired(false);
+        user.setEmail(null)
+                .setName(null)
+                .setContactCountryValue(null)
+                .setContact(null)
+                .setPolicyTermsAt(null)
+                .setPolicyPrivacyAt(null)
+                .setPolicyMarketingAt(null)
+                .setStatusValue(null)
+                .setRegisteredAt(null)
+                .setAdmin(false);
+
+    }
 
     @RequestMapping(value = "userLogin", method = RequestMethod.GET)
     public ModelAndView getUserLogin(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,

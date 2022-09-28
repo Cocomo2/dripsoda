@@ -2,6 +2,7 @@ package com.dripsoda.community.mappers;
 
 import com.dripsoda.community.entities.member.ContactAuthEntity;
 import com.dripsoda.community.entities.member.ContactCountryEntity;
+import com.dripsoda.community.entities.member.EmailAuthEntity;
 import com.dripsoda.community.entities.member.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -9,17 +10,25 @@ import org.apache.ibatis.annotations.Mapper;
 public interface IMemberMapper {
     int insertContactAuth(ContactAuthEntity contactAuth);
 
+    int insertEmailAuth(EmailAuthEntity emailAuth);
+
     int insertUser(UserEntity user);
 
     ContactAuthEntity selectContactAuthByContactCodeSalt(ContactAuthEntity contactAuth);
 
     ContactCountryEntity[] selectContactCountries();
 
-    UserEntity selectUserByEmail(UserEntity user);
+    EmailAuthEntity selectEmailAuthByIndex(EmailAuthEntity emailAuth);
 
-    UserEntity selectUserByContact(UserEntity user);
+    UserEntity selectUserByEmail(UserEntity user);
 
     UserEntity selectUserByNameContact(UserEntity user);
 
+    UserEntity selectUserByContact(UserEntity user);
+
     int updateContactAuth(ContactAuthEntity contactAuth);
+
+    int updateEmailAuth(EmailAuthEntity emailAuth);
+
+    int updateUser(UserEntity user);
 }

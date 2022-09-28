@@ -1,8 +1,10 @@
 package com.dripsoda.community.services;
 
+import com.dripsoda.community.components.MailComponent;
 import com.dripsoda.community.components.SmsComponent;
 import com.dripsoda.community.entities.member.ContactAuthEntity;
 import com.dripsoda.community.entities.member.ContactCountryEntity;
+import com.dripsoda.community.entities.member.EmailAuthEntity;
 import com.dripsoda.community.entities.member.UserEntity;
 import com.dripsoda.community.enums.CommonResult;
 import com.dripsoda.community.exceptions.RollbackException;
@@ -15,8 +17,9 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.thymeleaf.context.Context;
 
+import javax.mail.MessagingException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -26,11 +29,13 @@ import java.util.Date;
 public class MemberService {
     private final IMemberMapper memberMapper;
     private final SmsComponent smsComponent;
+    private final MailComponent mailComponent;
 
     @Autowired
-    public MemberService(IMemberMapper memberMapper, SmsComponent smsComponent) {
+    public MemberService(IMemberMapper memberMapper, SmsComponent smsComponent, MailComponent mailComponent) {
         this.memberMapper = memberMapper;
         this.smsComponent = smsComponent;
+        this.mailComponent = mailComponent;
     }
 
     @Transactional
@@ -42,7 +47,6 @@ public class MemberService {
         if (contactAuth.getContact() == null || !contactAuth.getContact().matches(MemberRegex.USER_CONTACT)) {
             return CommonResult.FAILURE;
         }
-
         Date createdAt = new Date();
         Date expiresAt = DateUtils.addMinutes(createdAt, 5);
         String code = RandomStringUtils.randomNumeric(6);
@@ -138,18 +142,17 @@ public class MemberService {
 
     public ContactCountryEntity[] getContactCountries() {
         return this.memberMapper.selectContactCountries();
-
     }
 
     @Transactional
     public IResult recoverUserEmailAuth(UserEntity user, ContactAuthEntity contactAuth) throws
             IOException,
-            NoSuchAlgorithmException,
             InvalidKeyException,
+            NoSuchAlgorithmException,
             RollbackException {
         if (user.getName() == null ||
-                !user.getName().matches(MemberRegex.USER_NAME) ||
                 user.getContact() == null ||
+                !user.getName().matches(MemberRegex.USER_NAME) ||
                 !user.getContact().matches(MemberRegex.USER_CONTACT)) {
             return CommonResult.FAILURE;
         }
@@ -158,7 +161,7 @@ public class MemberService {
             return CommonResult.FAILURE;
         }
         contactAuth.setContact(user.getContact());
-        if(this.createContactAuth(contactAuth) != CommonResult.SUCCESS) {
+        if (this.createContactAuth(contactAuth) != CommonResult.SUCCESS) {
             throw new RollbackException();
         }
         return CommonResult.SUCCESS;
@@ -167,8 +170,8 @@ public class MemberService {
     @Transactional
     public IResult registerAuth(ContactAuthEntity contactAuth) throws
             IOException,
-            NoSuchAlgorithmException,
             InvalidKeyException,
+            NoSuchAlgorithmException,
             RollbackException {
         if (contactAuth.getContact() == null || !contactAuth.getContact().matches(MemberRegex.USER_CONTACT)) {
             return CommonResult.FAILURE;
@@ -176,14 +179,14 @@ public class MemberService {
         if (this.memberMapper.selectUserByContact(UserEntity.build().setContact(contactAuth.getContact())) != null) {
             return CommonResult.DUPLICATE;
         }
-        if(this.createContactAuth(contactAuth) != CommonResult.SUCCESS) {
+        if (this.createContactAuth(contactAuth) != CommonResult.SUCCESS) {
             throw new RollbackException();
         }
         return CommonResult.SUCCESS;
     }
 
     @Transactional
-    public IResult findUserEmail(ContactAuthEntity contactAuth , UserEntity user) {
+    public IResult findUserEmail(ContactAuthEntity contactAuth, UserEntity user) {
         if (contactAuth.getContact() == null ||
                 contactAuth.getCode() == null ||
                 contactAuth.getSalt() == null ||
@@ -203,7 +206,68 @@ public class MemberService {
         user.setEmail(foundUser.getEmail());
         return CommonResult.SUCCESS;
     }
+
+    @Transactional
+    public IResult recoverUserPassword(UserEntity user) throws
+            MessagingException,
+            RollbackException {
+        if (user.getEmail() == null || !user.getEmail().matches(MemberRegex.USER_EMAIL)) {
+            return CommonResult.FAILURE;
+        }
+        user = this.memberMapper.selectUserByEmail(user);
+        if (user == null) {
+            return CommonResult.FAILURE;
+        }
+        Date createdAt = new Date();
+        String code = CryptoUtils.hashSha512(String.format("%s%d%f%f",
+                user.getEmail(),
+                createdAt.getTime(),
+                Math.random(),
+                Math.random()));
+        EmailAuthEntity emailAuth = EmailAuthEntity.build()
+                .setEmail(user.getEmail())
+                .setCode(code)
+                .setCreatedAt(createdAt)
+                .setExpiresAt(DateUtils.addMinutes(createdAt, 10));
+        if (this.memberMapper.insertEmailAuth(emailAuth) == 0) {
+            throw new RollbackException();
+        }
+        final String from = "inst.yhp@gmail.com";
+        final String subject = "[드립소다] 비밀번호 재설정";
+        final String viewName = "member/userRecoverPasswordMail";
+        Context context = new Context();
+        context.setVariable("name", user.getName());
+        context.setVariable("index", emailAuth.getIndex());
+        context.setVariable("code", emailAuth.getCode());
+        this.mailComponent.sendHtml(from, emailAuth.getEmail(), subject, viewName, context);
+        return CommonResult.SUCCESS;
+    }
+
+    public IResult resetPassword(EmailAuthEntity emailAuth, UserEntity user) {
+        if (emailAuth.getIndex() < 1 ||
+                emailAuth.getCode() == null ||
+                user.getPassword() == null ||
+                !emailAuth.getCode().matches(MemberRegex.EMAIL_AUTH_CODE) ||
+                !user.getPassword().matches(MemberRegex.USER_PASSWORD)) {
+            return CommonResult.FAILURE;
+        }
+        EmailAuthEntity existingEmailAuth = this.memberMapper.selectEmailAuthByIndex(emailAuth);
+        if (existingEmailAuth == null || !existingEmailAuth.getCode().equals(emailAuth.getCode())) {
+            return CommonResult.FAILURE;
+        }
+        if (existingEmailAuth.isExpired() || new Date().compareTo(existingEmailAuth.getExpiresAt()) > 0) {
+            return CommonResult.EXPIRED;
+        }
+        user.setEmail(existingEmailAuth.getEmail());
+        UserEntity existingUser = this.memberMapper.selectUserByEmail(user);
+        if (existingUser == null) {
+            return CommonResult.FAILURE;
+        }
+        existingUser.setPassword(CryptoUtils.hashSha512(user.getPassword()));
+        // TODO : Finish password resetting.
+    }
 }
+
 
 
 
