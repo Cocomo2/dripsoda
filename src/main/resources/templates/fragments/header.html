@@ -25,12 +25,19 @@
             </label>
         </form>
         <ul class="side-menu">
-            <li class="item">
+            <li class="item" th:if="${session.memberUser == null}">
                 <a class="link" th:href="@{/member/userLogin}">로그인</a>
             </li>
-            <li class="item">
+            <li class="item" th:if="${session.memberUser == null}">
                 <a class="link" th:href="@{/member/userRegister}">회원가입</a>
             </li>
+            <li class="item" th:if="${session.memberUser != null}">
+                <a class="link" th:href="@{/member/userLogout}">로그아웃</a>
+            </li>
+            <li class="item" th:if="${session.memberUser != null}">
+                <a class="link" th:href="@{/member/userMy}">마이페이지</a>
+            </li>
+
             <li class="item button">글쓰기</li>
         </ul>
     </div>

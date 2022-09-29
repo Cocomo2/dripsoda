@@ -22,6 +22,8 @@ public interface IMemberMapper {
 
     UserEntity selectUserByEmail(UserEntity user);
 
+    UserEntity selectUserByEmailPassword(UserEntity user);
+
     UserEntity selectUserByNameContact(UserEntity user);
 
     UserEntity selectUserByContact(UserEntity user);

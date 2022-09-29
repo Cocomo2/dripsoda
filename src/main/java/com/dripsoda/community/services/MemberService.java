@@ -7,6 +7,7 @@ import com.dripsoda.community.entities.member.ContactCountryEntity;
 import com.dripsoda.community.entities.member.EmailAuthEntity;
 import com.dripsoda.community.entities.member.UserEntity;
 import com.dripsoda.community.enums.CommonResult;
+import com.dripsoda.community.enums.member.UserLoginResult;
 import com.dripsoda.community.exceptions.RollbackException;
 import com.dripsoda.community.interfaces.IResult;
 import com.dripsoda.community.mappers.IMemberMapper;
@@ -243,7 +244,8 @@ public class MemberService {
         return CommonResult.SUCCESS;
     }
 
-    public IResult resetPassword(EmailAuthEntity emailAuth, UserEntity user) {
+    @Transactional
+    public IResult resetPassword(EmailAuthEntity emailAuth, UserEntity user) throws RollbackException {
         if (emailAuth.getIndex() < 1 ||
                 emailAuth.getCode() == null ||
                 user.getPassword() == null ||
@@ -258,15 +260,67 @@ public class MemberService {
         if (existingEmailAuth.isExpired() || new Date().compareTo(existingEmailAuth.getExpiresAt()) > 0) {
             return CommonResult.EXPIRED;
         }
+        existingEmailAuth.setExpired(true);
+        if (this.memberMapper.updateEmailAuth(existingEmailAuth) == 0) {
+            throw new RollbackException();
+        }
+
         user.setEmail(existingEmailAuth.getEmail());
         UserEntity existingUser = this.memberMapper.selectUserByEmail(user);
         if (existingUser == null) {
             return CommonResult.FAILURE;
         }
         existingUser.setPassword(CryptoUtils.hashSha512(user.getPassword()));
-        // TODO : Finish password resetting.
+        if (this.memberMapper.updateUser(existingUser) == 0) {
+            throw new RollbackException();
+        }
+        return CommonResult.SUCCESS;
     }
+
+    @Transactional
+    public IResult loginUser(UserEntity user) {
+        if (user.getEmail() == null ||
+        user.getPassword() == null ||
+        !user.getEmail().matches(MemberRegex.USER_EMAIL) ||
+        !user.getPassword().matches(MemberRegex.USER_PASSWORD)) {
+            return CommonResult.FAILURE;
+        }
+        user.setPassword(CryptoUtils.hashSha512(user.getPassword()));
+        UserEntity existingUser =this.memberMapper.selectUserByEmailPassword(user);
+        if (existingUser == null) {
+            return CommonResult.FAILURE;
+        }
+
+
+        user.setEmail(existingUser.getEmail())
+                .setPassword(existingUser.getPassword())
+                .setName(existingUser.getName())
+                .setContactCountryValue(existingUser.getContactCountryValue())
+                .setContact(existingUser.getContact())
+                .setPolicyTermsAt(existingUser.getPolicyTermsAt())
+                .setPolicyPrivacyAt(existingUser.getPolicyPrivacyAt())
+                .setPolicyMarketingAt(existingUser.getPolicyMarketingAt())
+                .setStatusValue(existingUser.getStatusValue())
+                .setRegisteredAt(existingUser.getRegisteredAt())
+                .setAdmin(existingUser.isAdmin());
+        if (user.getStatusValue().equals("SUS")) {
+            return UserLoginResult.SUSPENDED;
+        }
+        return CommonResult.SUCCESS;
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

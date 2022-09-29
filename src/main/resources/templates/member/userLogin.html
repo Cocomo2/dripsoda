@@ -10,7 +10,7 @@
 <body class="_layout-hmf">
 <th:block th:replace="~{fragments/header.html :: content}"></th:block>
 <main class="_main main">
-    <form class="login-form" id="loginForm">
+    <form class="login-form" id="form">
         <h2 class="title">로그인</h2>
         <label class="_object-label">
             <span hidden>이메일</span>
@@ -20,7 +20,7 @@
             <span hidden>비밀번호</span>
             <input class="_object-input" maxlength="50" name="password" placeholder="비밀번호" type="password">
         </label>
-        <span class="warning" id="loginWarning"></span>
+        <span class="warning" id="warning"></span>
         <label class="_object-check-container">
             <input hidden name="autosign" type="checkbox">
             <span class="_object-check">

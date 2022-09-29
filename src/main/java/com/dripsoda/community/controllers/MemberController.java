@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Optional;
 
 @Controller(value = "com.dripsoda.community.controllers.MemberController")
 @RequestMapping(value = "/member")
@@ -149,7 +151,7 @@ public class MemberController {
     @RequestMapping(value = "userResetPassword", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String postUserResetPassword(EmailAuthEntity emailAuth,
-                                        UserEntity user) {
+                                        UserEntity user) throws RollbackException {
         emailAuth.setEmail(null)
                 .setCreatedAt(null)
                 .setExpiresAt(null)
@@ -164,7 +166,15 @@ public class MemberController {
                 .setStatusValue(null)
                 .setRegisteredAt(null)
                 .setAdmin(false);
-
+        IResult result;
+        try {
+            result = this.memberService.resetPassword(emailAuth, user);
+        } catch (RollbackException ex) {
+            result = ex.result;
+        }
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
     }
 
     @RequestMapping(value = "userLogin", method = RequestMethod.GET)
@@ -176,6 +186,33 @@ public class MemberController {
         }
         modelAndView.setViewName("member/userLogin");
         return modelAndView;
+    }
+
+    @RequestMapping(value = "userLogin", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String postUserLogin(@RequestParam(value = "autosign", required = false) Optional<Boolean> autosignOptional, HttpSession session, UserEntity user) {
+        boolean autosign = autosignOptional.orElse(false);
+        user.setName(null)
+                .setContactCountryValue(null)
+                .setContact(null)
+                .setPolicyTermsAt(null)
+                .setPolicyPrivacyAt(null)
+                .setPolicyMarketingAt(null)
+                .setStatusValue(null)
+                .setRegisteredAt(null)
+                .setAdmin(false);
+        IResult result = this.memberService.loginUser(user);
+        if (result == CommonResult.SUCCESS && autosign) {
+            session.setAttribute(UserEntity.ATTRIBUTE_NAME, user);
+            if (autosign) {
+                // TODO: 2022-09-29  
+            }
+
+        }
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
+
     }
 
     @RequestMapping(value = "userRegister", method = RequestMethod.GET)
@@ -265,6 +302,26 @@ public class MemberController {
         responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
         return responseJson.toString();
     }
+
+    @RequestMapping(value = "userLogout", method = RequestMethod.GET)
+    public ModelAndView getUserLogout(HttpSession session,
+                                      ModelAndView modelAndView) {
+        session.removeAttribute(UserEntity.ATTRIBUTE_NAME);
+        modelAndView.setViewName("redirect:/");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "userMy", method = RequestMethod.GET)
+    public ModelAndView getUserMy(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                                  ModelAndView modelAndView) {
+        if (user == null) {
+            modelAndView.setViewName("redirect:/member/userLogin");
+            return modelAndView;
+        }
+        modelAndView.setViewName("member/userMy");
+        return modelAndView;
+    }
+
 }
 
 

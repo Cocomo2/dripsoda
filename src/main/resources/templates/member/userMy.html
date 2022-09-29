@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>드립소다 마이페이지</title>
+    <th:block th:insert="~{fragments/head.html :: content}"></th:block>
+    <link rel="stylesheet" th:href="@{/member/resources/stylesheets/userMy.css}">
+    <script defer th:src="@{/member/resources/scripts/userMy.js}"></script>
+</head>
+<body class="_layout-hmf">
+<th:block th:replace="~{fragments/header.html :: content}"></th:block>
+<main class="_main main">
+    <ul class="nav box" th:with="tab = ${#request.getParameter('tab')}">
+        <li class="profile-container">
+            <div class="profile-image"></div>
+            <div class="name" th:text="${session.memberUser.getName()}"></div>
+        </li>
+        <li class="item" th:selected="${tab == null || tab.equals('info') || (!tab.equals('trip') && !tab.equals('book') && !tab.equals('comment') && !tab.equals('accompany') && !tab.equals('truncate'))}">
+            <a class="link" th:href="@{./userMy (tab=info)}">
+                <span class="text">회원정보 관리</span>
+            </a>
+        </li>
+        <li class="item" th:selected="${tab != null && tab.equals('trip')}">
+            <a class="link" th:href="@{./userMy (tab=trip)}">
+                <span class="text">여행후기</span>
+            </a>
+        </li>
+        <li class="item" th:selected="${tab != null && tab.equals('book')}">
+            <a class="link" th:href="@{./userMy (tab=book)}">
+                <span class="text">예약내역</span>
+            </a>
+        </li>
+        <li class="item" th:selected="${tab != null && tab.equals('comment')}">
+            <a class="link" th:href="@{./userMy (tab=comment)}">
+                <span class="text">내 댓글</span>
+            </a>
+        </li>
+        <li class="item" th:selected="${tab != null && tab.equals('accompany')}">
+            <a class="link" th:href="@{./userMy (tab=accompany)}">
+                <span class="text">내 동행 게시글</span>
+            </a>
+        </li>
+        <li class="item" th:selected="${tab != null && tab.equals('truncate')}">
+            <a class="link" th:href="@{./userMy (tab=truncate)}">
+                <span class="text">회원탈퇴</span>
+            </a>
+        </li>
+    </ul>
+    <th:block th:switch="${#request.getParameter('tab')}">
+        <section class="content box trip" th:case="'trip'">
+            <h2 class="title">여행후기</h2>
+        </section>
+        <section class="content box book" th:case="'book'">
+            <h2 class="title">예약내역</h2>
+        </section>
+        <section class="content box comment" th:case="'comment'">
+            <h2 class="title">내 댓글</h2>
+        </section>
+        <section class="content box accompany" th:case="'accompany'">
+            <h2 class="title">내 동행 게시글</h2>
+        </section>
+        <section class="content box truncate" th:case="'truncate'">
+            <h2 class="title">회원탈퇴</h2>
+        </section>
+        <section class="content box info" th:case="*">
+            <h2 class="title">회원정보 관리</h2>
+            <form class="form" id="infoForm">
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <th class="caption">이메일</th>
+                        <td>
+                            <label class="_object-label label">
+                                <span hidden>이메일</span>
+                                <input class="_object-input" readonly th:value="${session.memberUser.getEmail()}">
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="caption">현재 비밀번호</th>
+                        <td>
+                            <label class="_object-label label">
+                                <span hidden>현재 비밀번호</span>
+                                <input autofocus class="_object-input" maxlength="50" name="oldPassword" type="password">
+                                <span class="message">회원정보를 변경하기 위해 현재 비밀번호를 입력해 주세요.</span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="caption" rowspan="2">새로운 비밀번호</th>
+                        <td>
+                            <label class="_object-label label">
+                                <span hidden>새로운 비밀번호</span>
+                                <input autofocus class="_object-input" maxlength="50" name="newPassword" type="password">
+                                <span class="message">비밀번호를 변경하려면 새로운 비밀번호를 입력해 주세요.</span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label class="_object-label label">
+                                <span hidden>새로운 비밀번호 재입력</span>
+                                <input autofocus class="_object-input" maxlength="50" name="newPasswordCheck" type="password">
+                                <span class="message">한 번 더 입력해 주세요.</span>
+                            </label>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        </section>
+    </th:block>
+</main>
+<th:block th:replace="~{fragments/footer.html :: content}"></th:block>
+</body>
+</html>
