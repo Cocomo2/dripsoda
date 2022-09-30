@@ -245,7 +245,8 @@ public class MemberService {
     }
 
     @Transactional
-    public IResult resetPassword(EmailAuthEntity emailAuth, UserEntity user) throws RollbackException {
+    public IResult resetPassword(EmailAuthEntity emailAuth, UserEntity user) throws
+            RollbackException {
         if (emailAuth.getIndex() < 1 ||
                 emailAuth.getCode() == null ||
                 user.getPassword() == null ||
@@ -280,18 +281,16 @@ public class MemberService {
     @Transactional
     public IResult loginUser(UserEntity user) {
         if (user.getEmail() == null ||
-        user.getPassword() == null ||
-        !user.getEmail().matches(MemberRegex.USER_EMAIL) ||
-        !user.getPassword().matches(MemberRegex.USER_PASSWORD)) {
+                user.getPassword() == null ||
+                !user.getEmail().matches(MemberRegex.USER_EMAIL) ||
+                !user.getPassword().matches(MemberRegex.USER_PASSWORD)) {
             return CommonResult.FAILURE;
         }
         user.setPassword(CryptoUtils.hashSha512(user.getPassword()));
-        UserEntity existingUser =this.memberMapper.selectUserByEmailPassword(user);
+        UserEntity existingUser = this.memberMapper.selectUserByEmailPassword(user);
         if (existingUser == null) {
             return CommonResult.FAILURE;
         }
-
-
         user.setEmail(existingUser.getEmail())
                 .setPassword(existingUser.getPassword())
                 .setName(existingUser.getName())
@@ -309,24 +308,21 @@ public class MemberService {
         return CommonResult.SUCCESS;
     }
 
+    public IResult modifyUserContactAuth(ContactAuthEntity contactAuth) throws
+            InvalidKeyException,
+            IOException,
+            NoSuchAlgorithmException,
+            RollbackException {
+        if (contactAuth.getContact() == null ||
+                !contactAuth.getContact().matches(MemberRegex.USER_CONTACT)) {
+            return CommonResult.FAILURE;
+        }
+        if (this.memberMapper.selectUserByContact(UserEntity.build().setContact(contactAuth.getContact())) != null) {
+            return CommonResult.DUPLICATE;
+        }
+        return this.createContactAuth(contactAuth);
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

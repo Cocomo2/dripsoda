@@ -66,43 +66,112 @@
             <h2 class="title">회원정보 관리</h2>
             <form class="form" id="infoForm">
                 <table class="table">
-                    <tbody>
-                    <tr>
+                    <tbody class="body">
+                    <tr class="row">
                         <th class="caption">이메일</th>
-                        <td>
+                        <td class="cell">
                             <label class="_object-label label">
                                 <span hidden>이메일</span>
-                                <input class="_object-input" readonly th:value="${session.memberUser.getEmail()}">
+                                <input class="_object-input input" disabled th:value="${session.memberUser.getEmail()}">
                             </label>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="row">
                         <th class="caption">현재 비밀번호</th>
-                        <td>
+                        <td class="cell">
                             <label class="_object-label label">
                                 <span hidden>현재 비밀번호</span>
-                                <input autofocus class="_object-input" maxlength="50" name="oldPassword" type="password">
+                                <input autofocus class="_object-input input" maxlength="50" name="oldPassword" type="password">
                                 <span class="message">회원정보를 변경하기 위해 현재 비밀번호를 입력해 주세요.</span>
                             </label>
+                            <label class="_object-check-container">
+                                <input hidden name="changePassword" type="checkbox">
+                                <span class="_object-check">
+                                    <i class="_object-check-icon fa-solid fa-check"></i>
+                                </span>
+                                <span>비밀번호 변경하기</span>
+                            </label>
                         </td>
                     </tr>
-                    <tr>
-                        <th class="caption" rowspan="2">새로운 비밀번호</th>
-                        <td>
+                    <tr class="row" rel="row-change-password">
+                        <th class="caption">새로운 비밀번호</th>
+                        <td class="cell">
                             <label class="_object-label label">
                                 <span hidden>새로운 비밀번호</span>
-                                <input autofocus class="_object-input" maxlength="50" name="newPassword" type="password">
+                                <input autofocus class="_object-input input" maxlength="50" name="newPassword" type="password">
                                 <span class="message">비밀번호를 변경하려면 새로운 비밀번호를 입력해 주세요.</span>
+                            </label>
+                            <label class="_object-label label">
+                                <span hidden>새로운 비밀번호 재입력</span>
+                                <input autofocus class="_object-input input" maxlength="50" name="newPasswordCheck" type="password">
+                                <span class="message">한 번 더 입력해 주세요.</span>
                             </label>
                         </td>
                     </tr>
-                    <tr>
-                        <td>
+                    <tr class="row">
+                        <th class="caption">연락처</th>
+                        <td class="cell">
                             <label class="_object-label label">
-                                <span hidden>새로운 비밀번호 재입력</span>
-                                <input autofocus class="_object-input" maxlength="50" name="newPasswordCheck" type="password">
-                                <span class="message">한 번 더 입력해 주세요.</span>
+                                <span hidden>국가 코드</span>
+                                <select class="_object-input input" disabled>
+                                    <!--/*@thymesVar id="memberContactCountries" type="com.dripsoda.community.entities.member.ContactCountryEntity[]"*/-->
+                                    <option th:each="country : ${memberContactCountries}"
+                                            th:value="${country.getValue()}"
+                                            th:text="${'+' + country.getValue() + ' ' + country.getText()}"
+                                            th:selected="${country.getValue().equals(session.memberUser.getContactCountryValue())}"
+                                            th:if="${country.getValue().equals(session.memberUser.getContactCountryValue())}"></option>
+                                    <!--/*@thymesVar id="memberContactCountry" type="com.dripsoda.community.entities.member.ContactCountryEntity"*/-->
+                                    <!-- <option disabled th:text="${'+' + session.memberUser.getContactCountryValue() + ' ' + memberContactCountry.getText()}"></option>-->
+                                </select>
                             </label>
+                            <label class="_object-label label">
+                                <span hidden>연락처</span>
+                                <input class="_object-input input" maxlength="12" disabled type="text" th:value="${session.memberUser.getContact()}">
+                            </label>
+                            <label class="_object-check-container">
+                                <input hidden name="changeContact" type="checkbox">
+                                <span class="_object-check">
+                                    <i class="_object-check-icon fa-solid fa-check"></i>
+                                </span>
+                                <span>연락처 변경하기</span>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr class="row" rel="row-change-contact">
+                        <th class="caption">새로운 연락처</th>
+                        <td class="cell">
+                            <input name="newContactAuthSalt" type="hidden">
+                            <label class="_object-label label">
+                                <span hidden>국가 코드</span>
+                                <select class="_object-input input" name="newContactCountryValue">
+                                    <!--/*@thymesVar id="memberContactCountries" type="com.dripsoda.community.entities.member.ContactCountryEntity[]"*/-->
+                                    <option th:each="country : ${memberContactCountries}"
+                                            th:value="${country.getValue()}"
+                                            th:text="${'+' + country.getValue() + ' ' + country.getText()}"
+                                            th:selected="${country.getValue().equals('082')}"></option>
+                                </select>
+                            </label>
+                            <label class="_object-label label">
+                                <span hidden>연락처</span>
+                                <input class="_object-input input" maxlength="12" name="newContact" type="text">
+                                <input class="_object-button button" name="newContactAuthRequestButton" type="button" value="인증번호 요청">
+                            </label>
+                            <label class="_object-label label">
+                                <span hidden>인증번호</span>
+                                <input class="_object-input input" disabled maxlength="6" name="newContactAuthCode" type="text">
+                                <input class="_object-button button" disabled name="newContactAuthCheckButton" type="button" value="인증번호 확인">
+                            </label>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <th class="caption"></th>
+                        <td class="cell">
+                            <span class="warning" id="warning"></span>
+                        </td>
+                    </tr>
+                    <tr class="row">
+                        <td class="cell" colspan="2">
+                            <input class="_object-button" type="submit" value="회원정보 수정">
                         </td>
                     </tr>
                     </tbody>

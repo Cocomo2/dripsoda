@@ -94,31 +94,65 @@ body > .main > .content > .title {
     padding-bottom: 1rem;
 }
 
-body > .main > .content.info > .form > .table .caption {
+body > .main > .content.info > .form > .table {
+    border-collapse: collapse;
+}
+
+body > .main > .content.info > .form > .table > .body > .row[rel="row-change-password"],
+body > .main > .content.info > .form > .table > .body > .row[rel="row-change-contact"] {
+    display: none;
+}
+
+body > .main > .content.info > .form > .table > .body > .row.visible[rel="row-change-password"],
+body > .main > .content.info > .form > .table > .body > .row.visible[rel="row-change-contact"] {
+    display: table-row;
+}
+
+body > .main > .content.info > .form > .table > .body > .row:not(:first-child) > th,
+body > .main > .content.info > .form > .table > .body > .row:not(:first-child) > th + td {
+    border-top: 0.0625rem solid rgb(230, 230, 230);
+    padding-top: 1rem;
+}
+
+body > .main > .content.info > .form > .table > .body > .row:not(:last-child) > * {
+    padding-bottom: 1rem;
+}
+
+body > .main > .content.info > .form > .table > .body > .row > .caption {
     font: inherit;
     padding-right: 1rem;
     text-align: right;
     white-space: nowrap;
 }
 
-body > .main > .content.info > .form > .table .label {
+body > .main > .content.info > .form > .table > .body > .row > .cell > * + * {
+    margin-top: 0.5rem;
+}
+
+body > .main > .content.info > .form > .table > .body > .row > .cell > .label {
     align-items: center;
     display: flex;
+    flex: 0;
     flex-direction: row;
     justify-content: flex-start;
 }
 
-body > .main > .content.info > .form > .table .label > ._object-input {
-    flex: 0;
+body > .main > .content.info > .form > .table > .body > .row > .cell > .label > * {
+    margin-right: 0.625rem;
 }
 
-body > .main > .content.info > .form > .table .label > .message {
-    margin-left: 1rem;
+body > .main > .content.info > .form > .table > .body > .row > .cell > .label > .input {
+    flex: 0 0 15rem;
 }
 
+body > .main > .content.info > .form > .table > .body > .row > .cell > .warning {
+    color: rgb(231, 76, 60);
+    display: none;
+}
 
-
-
+body > .main > .content.info > .form > .table > .body > .row > .cell > .warning.visible {
+    display: inline-block;
+}
 
 
 

@@ -82,6 +82,7 @@
         WHERE `email` = #{email}
         LIMIT 1
     </select>
+
     <select id="selectUserByEmailPassword"
             parameterType="com.dripsoda.community.entities.member.UserEntity"
             resultType="com.dripsoda.community.entities.member.UserEntity">
@@ -98,7 +99,7 @@
                `admin_flag`            AS `isAdmin`
         FROM `dripsoda_member`.`users`
         WHERE `email` = #{email}
-        AND `password` = #{password}
+          AND `password` = #{password}
         LIMIT 1
     </select>
 

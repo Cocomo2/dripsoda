@@ -11,6 +11,7 @@ import com.dripsoda.community.services.MemberService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 
@@ -151,7 +153,7 @@ public class MemberController {
     @RequestMapping(value = "userResetPassword", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String postUserResetPassword(EmailAuthEntity emailAuth,
-                                        UserEntity user) throws RollbackException {
+                                        UserEntity user) {
         emailAuth.setEmail(null)
                 .setCreatedAt(null)
                 .setExpiresAt(null)
@@ -190,7 +192,9 @@ public class MemberController {
 
     @RequestMapping(value = "userLogin", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public String postUserLogin(@RequestParam(value = "autosign", required = false) Optional<Boolean> autosignOptional, HttpSession session, UserEntity user) {
+    public String postUserLogin(@RequestParam(value = "autosign", required = false) Optional<Boolean> autosignOptional,
+                                HttpSession session,
+                                UserEntity user) {
         boolean autosign = autosignOptional.orElse(false);
         user.setName(null)
                 .setContactCountryValue(null)
@@ -202,17 +206,15 @@ public class MemberController {
                 .setRegisteredAt(null)
                 .setAdmin(false);
         IResult result = this.memberService.loginUser(user);
-        if (result == CommonResult.SUCCESS && autosign) {
+        if (result == CommonResult.SUCCESS) {
             session.setAttribute(UserEntity.ATTRIBUTE_NAME, user);
             if (autosign) {
-                // TODO: 2022-09-29  
+                // TODO : Implement auto sign feature.
             }
-
         }
         JSONObject responseJson = new JSONObject();
         responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
         return responseJson.toString();
-
     }
 
     @RequestMapping(value = "userRegister", method = RequestMethod.GET)
@@ -304,8 +306,8 @@ public class MemberController {
     }
 
     @RequestMapping(value = "userLogout", method = RequestMethod.GET)
-    public ModelAndView getUserLogout(HttpSession session,
-                                      ModelAndView modelAndView) {
+    public ModelAndView getUserLogout(ModelAndView modelAndView,
+                                      HttpSession session) {
         session.removeAttribute(UserEntity.ATTRIBUTE_NAME);
         modelAndView.setViewName("redirect:/");
         return modelAndView;
@@ -313,15 +315,70 @@ public class MemberController {
 
     @RequestMapping(value = "userMy", method = RequestMethod.GET)
     public ModelAndView getUserMy(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                                  @RequestParam(value = "tab", required = false, defaultValue = "info") String tab,
                                   ModelAndView modelAndView) {
         if (user == null) {
             modelAndView.setViewName("redirect:/member/userLogin");
             return modelAndView;
         }
+        if (tab == null || tab.equals("info") || (!tab.equals("trip") && !tab.equals("book") && !tab.equals("comment") && !tab.equals("accompany") && !tab.equals("truncate"))) {
+            ContactCountryEntity[] contactCountries = this.memberService.getContactCountries();
+            // ContactCountryEntity myCountry = Arrays.stream(contactCountries)
+            //         .filter(x -> x.getValue().equals(user.getContactCountryValue()))
+            //         .findFirst()
+            //         .orElse(null);
+
+            // ContactCountryEntity myCountry = null;
+            // for (ContactCountryEntity contactCountry : contactCountries) {
+            //     if (contactCountry.getValue().equals(user.getContactCountryValue())) {
+            //         myCountry = contactCountry;
+            //         break;
+            //     }
+            // }
+
+            // modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME, myCountry);
+            modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME_PLURAL, contactCountries);
+        }
         modelAndView.setViewName("member/userMy");
         return modelAndView;
     }
 
+    @RequestMapping(value = "userMyInfoAuth", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public String getUserMyInfoAuth(@RequestParam(value = "newContact") String newContact) throws
+            InvalidKeyException,
+            IOException,
+            NoSuchAlgorithmException {
+        ContactAuthEntity contactAuth = ContactAuthEntity.build().setContact(newContact);
+        IResult result;
+        try {
+            result = this.memberService.modifyUserContactAuth(contactAuth);
+        } catch (RollbackException ex) {
+            result = ex.result;
+        }
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        if (result == CommonResult.SUCCESS) {
+            responseJson.put("salt", contactAuth.getSalt());
+        }
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "userMyInfoAuth", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public String postUserMyInfoAuth(@RequestParam(value = "newContact") String newContact,
+                                     @RequestParam(value = "newContactAuthCode") String newContactAuthCode,
+                                     @RequestParam(value = "newContactAuthSalt") String newContactAuthSalt) throws
+            RollbackException {
+        ContactAuthEntity contactAuth = ContactAuthEntity.build()
+                .setContact(newContact)
+                .setCode(newContactAuthCode)
+                .setSalt(newContactAuthSalt);
+        IResult result = this.memberService.checkContactAuth(contactAuth);
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
+    }
 }
 
 
