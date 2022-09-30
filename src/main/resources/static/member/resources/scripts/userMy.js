@@ -1,5 +1,4 @@
 const infoForm = window.document.getElementById('infoForm');
-
 const warning = {
     getElement: () => window.document.getElementById('warning'),
     hide: () => warning.getElement().classList.remove('visible'),
@@ -22,8 +21,8 @@ infoForm?.changePassword?.addEventListener('input', () => {
     });
 });
 
-infoForm?.changenewContact?.addEventListener('input', () => {
-    infoForm.querySelectorAll('[rel="row-change-newContact"]').forEach(x => {
+infoForm?.changeContact?.addEventListener('input', () => {
+    infoForm.querySelectorAll('[rel="row-change-contact"]').forEach(x => {
         if (infoForm['changeContact'].checked) {
             x.classList.add('visible');
             infoForm['newContactAuthSalt'].value = '';
@@ -40,23 +39,22 @@ infoForm?.changenewContact?.addEventListener('input', () => {
     });
 });
 
-infoForm?.newnewContactAuthRequestButton.addEventListener('click', ()=> {
+infoForm?.newContactAuthRequestButton?.addEventListener('click', () => {
     warning.hide();
-    if(infoForm['newContact'].value === '') {
+    if (infoForm['newContact'].value === '') {
         warning.show('새로운 연락처를 입력해 주세요.');
-        infoForm['newContact'].focus()
+        infoForm['newContact'].focus();
         return;
     }
-    if (!new RegExp('^(\\d{8,12})$').test(infoForm['newnewContact'].value)) {
-        warning.show('올바른 연락처를 입력해 주세요.');
+    if (!new RegExp('^(\\d{8,12})$').test(infoForm['newContact'].value)) {
+        warning.show('올바른 새로운 연락처를 입력해 주세요.')
         infoForm['newContact'].focusAndSelect();
         return;
     }
     cover.show('인증번호를 전송하고 있습니다.\n\n잠시만 기다려 주세요.');
 
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', `./userMyInfoAuth?newnewContact=${infoForm['newnewContact'].value}`);
-
+    xhr.open('GET', `./userMyInfoAuth?newContact=${infoForm['newContact'].value}`);
     xhr.onreadystatechange = () => {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             cover.hide();
@@ -65,10 +63,10 @@ infoForm?.newnewContactAuthRequestButton.addEventListener('click', ()=> {
                 switch (responseJson['result']) {
                     case 'duplicate':
                         warning.show('해당 연락처는 이미 사용 중입니다.');
-                        infoForm['newnewContact'].focusAndSelect();
+                        infoForm['newContact'].focusAndSelect();
                         break;
                     case 'success':
-                        warning.show('입력하신 연락처로 인증번호를 포함한 문자를 전송하였습니다.\n 5분 내로 문자로 전송된 인증번호를 확인해 주세요.');
+                        warning.show('입력하신 연락처로 인증번호를 포함한 문자를 전송하였습니다. 5분 내로 문자로 전송된 인증번호를 확인해 주세요.');
                         infoForm['newContactAuthSalt'].value = responseJson['salt'];
                         infoForm['newContact'].setAttribute('disabled', 'disabled');
                         infoForm['newContactAuthRequestButton'].setAttribute('disabled', 'disabled');
@@ -87,11 +85,9 @@ infoForm?.newnewContactAuthRequestButton.addEventListener('click', ()=> {
         }
     };
     xhr.send();
-    
 });
 
-
-infoForm?.newContactAuthCheckButton.addEventListener('click', ()=> {
+infoForm?.newContactAuthCheckButton?.addEventListener('click', () => {
     warning.hide();
     if (infoForm['newContactAuthCode'].value === '') {
         warning.show('인증번호를 입력해 주세요.');
@@ -133,34 +129,44 @@ infoForm?.newContactAuthCheckButton.addEventListener('click', ()=> {
                         infoForm['newContactAuthCheckButton'].setAttribute('disabled', 'disabled');
                         break;
                     default:
-                        infoForm['newContactAuthCode'].focusAndSelect();
                         warning.show('입력한 인증번호가 올바르지 않습니다.');
+                        infoForm['newContactAuthCode'].focusAndSelect();
                 }
             } else {
-                registerWarning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
-                registerForm['newContactAuthCode'].focusAndSelect();
+                warning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+                infoForm['newContact'].focusAndSelect();
             }
         }
     };
     xhr.send(formData);
-
 });
 
+if (infoForm !== null) {
+    infoForm.onsubmit = e => {
+        e.preventDefault();
 
+        // 'oldPassword'를 입력하지 않았거나 올바르지 않은(정규식 탈락) 값을 입력하면 경고해준다.
+        // 비밀번호를 수정하기 위해서는 (해싱된) 'oldPassword'에 입력된 값이 현재 로그인한 사용자의 비밀번호와 같아야한다.
+        // '회원정보 수정'을 눌렀을 때 :
+        //      - 비밀번호 변경하기가 체크되어 있다면 'newPassword'에 대해 빈 값체크 /정규화해주고 'newPasswordCheck'와 값이 같은지 확인한 후 문제 있으면 경고해 준다.
+        //      - 연락처 변경하기가 체크되어 있다면 인증 절차가 모두 끝났는지 확인하고 문제가 있다면 경고해 준다.
+        //      - 비밀번호 변경하기 및 연락처 변경하기 둘다 체크되어 있지 않다면 바꿀 내용이 없다고 경고해 준다.
+        //      - 서버로 값을 넘긴다.
 
+        // 값을 넘겨 받은 서버는 :
+        //      - 비밀번호 변경하기가 체크되어 있었다면
+        //          - 로그인한 사용자의 비밀번호와 해싱한 'oldPassword'가 같은지 확인한 뒤 다르다면 FAILURE를 반환한다.
+        //          - 로그인한 사용자의 비밀번호를 해싱한 'newPassword'로 지정한다.
+        //      - 연락처 변경하기가 체크되어 있다면
+        //          - 넘겨받은 'newContact', 'newContactAuthCode', 'newContactAuthSalt'를 통해 ContactAuth 레코드가 있는지 조회한 뒤 없다면 FAILURE를 반환한다.
+        //          - 로그인한 사용자의 연락처를 넘겨 받은 'newContact'로 지정한다.
+        //          - 사용자 정보를 업데이트 한다.
+        //          - SUCCESS 를 반환한다.
 
-
-
-
-
-
-
-
-
-
-
-
-
+        // 응답 값을 받은 클라이언트는 :
+        //      - 응답 값에 따라 사용자에게 뭔가를 보여준다. (SUCCESS 일때 새로고침 하는게 속 편할 듯)
+    };
+}
 
 
 
