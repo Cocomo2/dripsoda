@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dripsoda.community.mappers.IAccompanyMapper">
+    <select id="selectContinents"
+            resultType="com.dripsoda.community.entities.accompany.ContinentEntity">
+        SELECT `value` AS `value`,
+               `text`  AS `text`
+        FROM `dripsoda_accompany`.`continents`
+        ORDER BY `text`
+    </select>
+
+    <select id="selectCountries"
+            resultType="com.dripsoda.community.entities.accompany.CountryEntity">
+        SELECT `continent_value` AS `continentValue`,
+               `value`           AS `value`,
+               `text`            AS `text`
+        FROM `dripsoda_accompany`.`countries`
+        ORDER BY `text`
+    </select>
+
+    <select id="selectRegions"
+            resultType="com.dripsoda.community.entities.accompany.RegionEntity">
+        SELECT `continent_value` AS `continentValue`,
+               `country_value`   AS `countryValue`,
+               `value`           AS `value`,
+               `text`            AS `text`
+        FROM `dripsoda_accompany`.`regions`
+        ORDER BY `text`
+    </select>
+</mapper>

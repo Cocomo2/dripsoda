@@ -7,9 +7,12 @@ import com.dripsoda.community.entities.member.UserEntity;
 import com.dripsoda.community.enums.CommonResult;
 import com.dripsoda.community.exceptions.RollbackException;
 import com.dripsoda.community.interfaces.IResult;
+import com.dripsoda.community.regex.MemberRegex;
 import com.dripsoda.community.services.MemberService;
+import com.dripsoda.community.utils.CryptoUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
@@ -322,25 +325,42 @@ public class MemberController {
             return modelAndView;
         }
         if (tab == null || tab.equals("info") || (!tab.equals("trip") && !tab.equals("book") && !tab.equals("comment") && !tab.equals("accompany") && !tab.equals("truncate"))) {
-            ContactCountryEntity[] contactCountries = this.memberService.getContactCountries();
-            // ContactCountryEntity myCountry = Arrays.stream(contactCountries)
-            //         .filter(x -> x.getValue().equals(user.getContactCountryValue()))
-            //         .findFirst()
-            //         .orElse(null);
-
-            // ContactCountryEntity myCountry = null;
-            // for (ContactCountryEntity contactCountry : contactCountries) {
-            //     if (contactCountry.getValue().equals(user.getContactCountryValue())) {
-            //         myCountry = contactCountry;
-            //         break;
-            //     }
-            // }
-
-            // modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME, myCountry);
-            modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME_PLURAL, contactCountries);
+            modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME_PLURAL, this.memberService.getContactCountries());
         }
         modelAndView.setViewName("member/userMy");
         return modelAndView;
+    }
+
+    @RequestMapping(value = "userMyInfo", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postUserMyInfo(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity currentUser,
+                                 @RequestParam(value = "oldPassword") String oldPassword,
+                                 @RequestParam(value = "changePassword") Optional<Boolean> changePasswordOptional,
+                                 @RequestParam(value = "changeContact") Optional<Boolean> changeContactOptional,
+                                 @RequestParam(value = "newPassword", required = false, defaultValue = "") String newPassword,
+                                 @RequestParam(value = "newContact", required = false, defaultValue = "") String newContact,
+                                 @RequestParam(value = "newContactAuthCode", required = false, defaultValue = "") String newContactAuthCode,
+                                 @RequestParam(value = "newContactAuthSalt", required = false, defaultValue = "") String newContactAuthSalt) {
+        UserEntity newUser = UserEntity.build();
+        if (changePasswordOptional.orElse(false)) {
+            newUser.setPassword(newPassword);
+        }
+        if (changeContactOptional.orElse(false)) {
+            newUser.setContact(newContact);
+        }
+        ContactAuthEntity contactAuth = ContactAuthEntity.build()
+                .setContact(newContact)
+                .setCode(newContactAuthCode)
+                .setSalt(newContactAuthSalt);
+        IResult result;
+        try {
+            result = this.memberService.modifyUser(currentUser, newUser, oldPassword, contactAuth);
+        } catch (RollbackException ex) {
+            result = ex.result;
+        }
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
     }
 
     @RequestMapping(value = "userMyInfoAuth", method = RequestMethod.GET, produces = "application/json")

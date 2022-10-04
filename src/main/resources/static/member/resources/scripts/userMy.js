@@ -145,26 +145,84 @@ if (infoForm !== null) {
     infoForm.onsubmit = e => {
         e.preventDefault();
 
-        // 'oldPassword'를 입력하지 않았거나 올바르지 않은(정규식 탈락) 값을 입력하면 경고해준다.
-        // 비밀번호를 수정하기 위해서는 (해싱된) 'oldPassword'에 입력된 값이 현재 로그인한 사용자의 비밀번호와 같아야한다.
-        // '회원정보 수정'을 눌렀을 때 :
-        //      - 비밀번호 변경하기가 체크되어 있다면 'newPassword'에 대해 빈 값체크 /정규화해주고 'newPasswordCheck'와 값이 같은지 확인한 후 문제 있으면 경고해 준다.
-        //      - 연락처 변경하기가 체크되어 있다면 인증 절차가 모두 끝났는지 확인하고 문제가 있다면 경고해 준다.
-        //      - 비밀번호 변경하기 및 연락처 변경하기 둘다 체크되어 있지 않다면 바꿀 내용이 없다고 경고해 준다.
-        //      - 서버로 값을 넘긴다.
+        if (!infoForm['changePassword'].checked && !infoForm['changeContact'].checked) {
+            warning.show('변경할 내용이 없습니다.');
+            return false;
+        }
+        if (infoForm['oldPassword'].value === '') {
+            warning.show('현재 비밀번호를 입력해 주세요.');
+            infoForm['oldPassword'].focus();
+            return false;
+        }
+        if (!new RegExp('^([\\da-zA-Z`~!@#$%^&*()\\-_=+\\[{\\]}\\\\|;:\'\",<.>/?]{8,50})$').test(infoForm['oldPassword'].value)) {
+            warning.show('올바른 현재 비밀번호를 입력해 주세요.');
+            infoForm['oldPassword'].focusAndSelect();
+            return false;
+        }
+        if (infoForm['changePassword'].checked) {
+            if (infoForm['newPassword'].value === '') {
+                warning.show('새로운 비밀번호를 입력해 주세요.');
+                infoForm['newPassword'].focus();
+                return false;
+            }
+            if (!new RegExp('^([\\da-zA-Z`~!@#$%^&*()\\-_=+\\[{\\]}\\\\|;:\'\",<.>/?]{8,50})$').test(infoForm['newPassword'].value)) {
+                warning.show('올바른 새로운 비밀번호를 입력해 주세요.');
+                infoForm['newPassword'].focusAndSelect();
+                return false;
+            }
+            if (infoForm['newPasswordCheck'].value === '') {
+                warning.show('새로운 비밀번호를 다시 입력해 주세요.');
+                infoForm['newPasswordCheck'].focus();
+                return false;
+            }
+            if (infoForm['newPassword'].value !== infoForm['newPasswordCheck'].value) {
+                warning.show('새로운 비밀번호가 서로 일치하지 않습니다.');
+                infoForm['newPasswordCheck'].focusAndSelect();
+                return false;
+            }
+        }
+        if (infoForm['changeContact'].checked) {
+            if (!infoForm['newContactAuthRequestButton'].disabled || !infoForm['newContactAuthCheckButton'].disabled) {
+                warning.show('변경할 새로운 연락처에 대한 인증을 완료해 주세요.');
+                return false;
+            }
+        }
+        cover.show('회원정보를 변경하고 있습니다.\n\n잠시만 기다려 주세요.');
 
-        // 값을 넘겨 받은 서버는 :
-        //      - 비밀번호 변경하기가 체크되어 있었다면
-        //          - 로그인한 사용자의 비밀번호와 해싱한 'oldPassword'가 같은지 확인한 뒤 다르다면 FAILURE를 반환한다.
-        //          - 로그인한 사용자의 비밀번호를 해싱한 'newPassword'로 지정한다.
-        //      - 연락처 변경하기가 체크되어 있다면
-        //          - 넘겨받은 'newContact', 'newContactAuthCode', 'newContactAuthSalt'를 통해 ContactAuth 레코드가 있는지 조회한 뒤 없다면 FAILURE를 반환한다.
-        //          - 로그인한 사용자의 연락처를 넘겨 받은 'newContact'로 지정한다.
-        //          - 사용자 정보를 업데이트 한다.
-        //          - SUCCESS 를 반환한다.
-
-        // 응답 값을 받은 클라이언트는 :
-        //      - 응답 값에 따라 사용자에게 뭔가를 보여준다. (SUCCESS 일때 새로고침 하는게 속 편할 듯)
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('oldPassword', infoForm['oldPassword'].value);
+        formData.append('changePassword', infoForm['changePassword'].checked);
+        formData.append('changeContact', infoForm['changeContact'].checked);
+        if (infoForm['changePassword'].checked) {
+            formData.append('newPassword', infoForm['newPassword'].value);
+        }
+        if (infoForm['changeContact'].checked) {
+            formData.append('newContact', infoForm['newContact'].value);
+            formData.append('newContactAuthCode', infoForm['newContactAuthCode'].value);
+            formData.append('newContactAuthSalt', infoForm['newContactAuthSalt'].value);
+        }
+        xhr.open('POST', './userMyInfo');
+        xhr.onreadystatechange = () => {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                cover.hide();
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    const responseJson = JSON.parse(xhr.responseText);
+                    switch (responseJson['result']) {
+                        case 'success':
+                            alert('회원정보를 성공적으로 수정하였습니다.');
+                            window.location.reload();
+                            break;
+                        default:
+                            warning.show('현재 비밀번호가 일치하지 않습니다. 다시 확인해 주세요.');
+                            infoForm['oldPassword'].focusAndSelect();
+                    }
+                } else {
+                    warning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+                }
+            }
+        };
+        xhr.send(formData);
     };
 }
 

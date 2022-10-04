@@ -308,6 +308,37 @@ public class MemberService {
         return CommonResult.SUCCESS;
     }
 
+    @Transactional
+    public IResult modifyUser(UserEntity currentUser, UserEntity newUser, String oldPassword, ContactAuthEntity contactAuth) throws
+            RollbackException {
+        if (currentUser == null || oldPassword == null ||
+                currentUser.getPassword() == null ||
+                !CryptoUtils.hashSha512(oldPassword).equals(currentUser.getPassword())) {
+            return CommonResult.FAILURE; // 현재 비밀번호 틀림
+        }
+        if (newUser.getPassword() != null && !newUser.getPassword().matches(MemberRegex.USER_PASSWORD)) {
+            return CommonResult.FAILURE; // 신규 비밀번호 정규화 실패
+        }
+        if (newUser.getContact() != null && (!newUser.getContact().matches(MemberRegex.USER_CONTACT) || this.checkContactAuth(contactAuth) != CommonResult.EXPIRED)) {
+            return CommonResult.FAILURE; // 신규 연락처 정규화 실패 혹은 인증 실패
+        }
+        String oldCurrentPassword = currentUser.getPassword(); // Update 실패시 세션에 있는 객체가 가진 원래 값으로 되돌려 놓기 위해 백업 해놓아야함.
+        String oldCurrentContact = currentUser.getContact(); // 상동
+        if (newUser.getPassword() != null) {
+            currentUser.setPassword(CryptoUtils.hashSha512(newUser.getPassword()));
+        }
+        if (newUser.getContact() != null) {
+            currentUser.setContact(newUser.getContact());
+        }
+        int record = this.memberMapper.updateUser(currentUser);
+        if (record == 0) {
+            currentUser.setPassword(oldCurrentPassword);
+            currentUser.setContact(oldCurrentContact);
+            throw new RollbackException();
+        }
+        return CommonResult.SUCCESS;
+    }
+
     public IResult modifyUserContactAuth(ContactAuthEntity contactAuth) throws
             InvalidKeyException,
             IOException,
