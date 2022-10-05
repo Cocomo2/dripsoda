@@ -6,25 +6,16 @@ public class CountryEntity {
     public static final String ATTRIBUTE_NAME = "accompanyCountry";
     public static final String ATTRIBUTE_NAME_PLURAL = "accompanyCountries";
 
-    public static CountryEntity build() {
-        return new CountryEntity();
-    }
-
     private String continentValue;
     private String value;
     private String text;
 
-    public CountryEntity() {
-    }
-
-    public CountryEntity(String continentValue, String value, String text) {
-        this.continentValue = continentValue;
-        this.value = value;
-        this.text = text;
+    public static CountryEntity build() {
+        return new CountryEntity();
     }
 
     public String getContinentValue() {
-        return this.continentValue;
+        return continentValue;
     }
 
     public CountryEntity setContinentValue(String continentValue) {
@@ -33,7 +24,7 @@ public class CountryEntity {
     }
 
     public String getValue() {
-        return this.value;
+        return value;
     }
 
     public CountryEntity setValue(String value) {
@@ -42,7 +33,7 @@ public class CountryEntity {
     }
 
     public String getText() {
-        return this.text;
+        return text;
     }
 
     public CountryEntity setText(String text) {

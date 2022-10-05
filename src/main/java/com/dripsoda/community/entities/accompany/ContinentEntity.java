@@ -13,16 +13,8 @@ public class ContinentEntity {
     private String value;
     private String text;
 
-    public ContinentEntity() {
-    }
-
-    public ContinentEntity(String value, String text) {
-        this.value = value;
-        this.text = text;
-    }
-
     public String getValue() {
-        return this.value;
+        return value;
     }
 
     public ContinentEntity setValue(String value) {
@@ -31,7 +23,7 @@ public class ContinentEntity {
     }
 
     public String getText() {
-        return this.text;
+        return text;
     }
 
     public ContinentEntity setText(String text) {

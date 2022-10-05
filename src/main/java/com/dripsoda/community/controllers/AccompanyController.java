@@ -1,11 +1,10 @@
 package com.dripsoda.community.controllers;
 
+
 import com.dripsoda.community.entities.accompany.ContinentEntity;
 import com.dripsoda.community.entities.accompany.CountryEntity;
 import com.dripsoda.community.entities.accompany.RegionEntity;
 import com.dripsoda.community.services.AccompanyService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,16 +34,6 @@ public class AccompanyController {
     @RequestMapping(value = "/", method = RequestMethod.PATCH, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String patchIndex() {
-        // ObjectMapper mapper = new ObjectMapper();
-        // JSONArray continentsJson = new JSONArray(mapper.writeValueAsString(this.accompanyService.getContinents()));
-        // JSONArray countriesJson = new JSONArray(mapper.writeValueAsString(this.accompanyService.getCountries()));
-        // JSONArray regionsJson = new JSONArray(mapper.writeValueAsString(this.accompanyService.getRegions()));
-        // JSONObject responseJson = new JSONObject();
-        // responseJson.put(ContinentEntity.ATTRIBUTE_NAME_PLURAL, continentsJson);
-        // responseJson.put(CountryEntity.ATTRIBUTE_NAME_PLURAL, countriesJson);
-        // responseJson.put(RegionEntity.ATTRIBUTE_NAME_PLURAL, regionsJson);
-        // return responseJson.toString();
-
         JSONArray continentsJson = new JSONArray();
         for (ContinentEntity continent : this.accompanyService.getContinents()) {
             JSONObject continentJson = new JSONObject();
@@ -52,6 +41,7 @@ public class AccompanyController {
             continentJson.put("text", continent.getText());
             continentsJson.put(continentJson);
         }
+
         JSONArray countriesJson = new JSONArray();
         for (CountryEntity country : this.accompanyService.getCountries()) {
             JSONObject countryJson = new JSONObject();
@@ -60,6 +50,7 @@ public class AccompanyController {
             countryJson.put("text", country.getText());
             countriesJson.put(countryJson);
         }
+
         JSONArray regionsJson = new JSONArray();
         for (RegionEntity region : this.accompanyService.getRegions()) {
             JSONObject regionJson = new JSONObject();

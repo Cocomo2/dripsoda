@@ -6,7 +6,7 @@ public class RegionEntity {
     public static final String ATTRIBUTE_NAME = "accompanyRegion";
     public static final String ATTRIBUTE_NAME_PLURAL = "accompanyRegions";
 
-    public static RegionEntity build() {
+    private static RegionEntity build() {
         return new RegionEntity();
     }
 
@@ -15,18 +15,8 @@ public class RegionEntity {
     private String value;
     private String text;
 
-    public RegionEntity() {
-    }
-
-    public RegionEntity(String continentValue, String countryValue, String value, String text) {
-        this.continentValue = continentValue;
-        this.countryValue = countryValue;
-        this.value = value;
-        this.text = text;
-    }
-
     public String getContinentValue() {
-        return this.continentValue;
+        return continentValue;
     }
 
     public RegionEntity setContinentValue(String continentValue) {
@@ -35,7 +25,7 @@ public class RegionEntity {
     }
 
     public String getCountryValue() {
-        return this.countryValue;
+        return countryValue;
     }
 
     public RegionEntity setCountryValue(String countryValue) {
@@ -44,7 +34,7 @@ public class RegionEntity {
     }
 
     public String getValue() {
-        return this.value;
+        return value;
     }
 
     public RegionEntity setValue(String value) {
@@ -53,7 +43,7 @@ public class RegionEntity {
     }
 
     public String getText() {
-        return this.text;
+        return text;
     }
 
     public RegionEntity setText(String text) {
