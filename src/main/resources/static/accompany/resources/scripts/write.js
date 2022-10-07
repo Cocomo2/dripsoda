@@ -2,6 +2,15 @@ let continents = [];
 let countries = [];
 let regions = [];
 
+const warning = {
+    getElement: () => window.document.getElementById('warning'),
+    hide: () => warning.getElement().classList.remove('visible'),
+    show: (text) => {
+        warning.getElement().innerText = text;
+        warning.getElement().classList.add('visible');
+    }
+};
+
 const continentContainer = window.document.getElementById('continentContainer');
 const drawContinents = () => {
     continentContainer.innerHTML = '';
@@ -81,9 +90,9 @@ const drawSubs = (continent) => {
             subElement.append(countryElement, regionContainerElement);
             subContainer.append(subElement);
         });
-    subContainer
+    setSelectedCountry(subContainer
         .querySelector(':scope > .sub:first-of-type > .country')
-        .setAttribute('selected', 'selected');
+        .dataset.value);
 };
 const getSelectedCountry = () => {
     const selectedContinent = getSelectedContinent();
@@ -102,8 +111,25 @@ const setSelectedCountry = (value) => {
     subContainer
         .querySelector(`.country[data-value="${value}"]`)
         ?.setAttribute('selected', 'selected');
+    subContainer
+        .querySelector(`.country[data-value="${value}"]`)
+        .parentNode
+        .querySelector('.region[data-value]')
+        .setAttribute('selected', 'selected');
 };
 
+const getSelectedRegion = () => {
+    const selectedContinent = getSelectedContinent()['value'];
+    const selectedCountry = getSelectedCountry()['value'];
+    const selectedRegion = subContainer.querySelector('.region[selected]')?.dataset.value ?? null;
+    if (selectedRegion === null) {
+        return null;
+    }
+    return regions.find(x =>
+        x['continentValue'] === selectedContinent &&
+        x['countryValue'] === selectedCountry &&
+        x['value'] === selectedRegion);
+};
 const setSelectedRegion = (value) => {
     subContainer
         .querySelectorAll('.region[data-value]')
@@ -135,3 +161,80 @@ xhr.onreadystatechange = () => {
     }
 };
 xhr.send();
+
+const form = window.document.getElementById('form');
+const capValue = window.document.getElementById('capValue');
+form['capacity'].addEventListener('input', () => {
+    capValue.innerText = form['capacity'].value + '명';
+});
+
+const noCoverImage = window.document.getElementById('noCoverImage');
+noCoverImage.addEventListener('click', () => {
+    form['coverImage'].click();
+});
+
+const coverImagePreview = window.document.getElementById('coverImagePreview');
+coverImagePreview.addEventListener('click', () => {
+    form['coverImage'].click();
+});
+form['coverImage'].addEventListener('input', () => {
+    if ((form['coverImage'].files?.length ?? 0) === 0) {
+        noCoverImage.classList.add('visible');
+        coverImagePreview.removeAttribute('src');
+        return;
+    }
+    coverImagePreview.setAttribute('src', window.URL.createObjectURL(form['coverImage'].files[0]));
+    noCoverImage.classList.remove('visible');
+});
+
+form['back'].addEventListener('click', () => {
+    window.location.href = './';
+});
+
+form.onsubmit = e => {
+    e.preventDefault();
+
+    warning.hide();
+    if (form['dateFrom'].value === '') {
+        warning.show('시작 날짜를 선택해 주세요.');
+        form['dateFrom'].focus();
+        return false;
+    }
+    if (form['dateTo'].value === '') {
+        warning.show('종료 날짜를 선택해 주세요.');
+        form['dateTo'].focus();
+        return false;
+    }
+    const dateFrom = Date.parse(form['dateFrom'].value);
+    const dateTo = Date.parse(form['dateTo'].value);
+    if (dateTo - dateFrom < 0) {
+        warning.show('종료 날짜는 시작 날짜와 같은 날이거나 미래여야 합니다.');
+        form['dateTo'].focus();
+        return false;
+    }
+    if ((form['coverImage'].files?.length ?? 0) === 0) {
+        warning.show('배경사진을 선택해 주세요.');
+        return false;
+    }
+    if (form['title'].value === '') {
+        warning.show('제목을 입력해 주세요.');
+        form['title'].focus();
+        return false;
+    }
+    if (form['content'].value === '') {
+        warning.show('내용을 입력해 주세요.');
+        form['content'].focus();
+        return false;
+    }
+
+
+};
+
+
+
+
+
+
+
+
+
