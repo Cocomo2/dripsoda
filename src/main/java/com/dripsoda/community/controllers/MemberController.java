@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -22,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 
@@ -323,22 +325,7 @@ public class MemberController {
             return modelAndView;
         }
         if (tab == null || tab.equals("info") || (!tab.equals("trip") && !tab.equals("book") && !tab.equals("comment") && !tab.equals("accompany") && !tab.equals("truncate"))) {
-            ContactCountryEntity[] contactCountries = this.memberService.getContactCountries();
-            // ContactCountryEntity myCountry = Arrays.stream(contactCountries)
-            //         .filter(x -> x.getValue().equals(user.getContactCountryValue()))
-            //         .findFirst()
-            //         .orElse(null);
-
-            // ContactCountryEntity myCountry = null;
-            // for (ContactCountryEntity contactCountry : contactCountries) {
-            //     if (contactCountry.getValue().equals(user.getContactCountryValue())) {
-            //         myCountry = contactCountry;
-            //         break;
-            //     }
-            // }
-
-            // modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME, myCountry);
-            modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME_PLURAL, contactCountries);
+            modelAndView.addObject(ContactCountryEntity.ATTRIBUTE_NAME_PLURAL, this.memberService.getContactCountries());
         }
         modelAndView.setViewName("member/userMy");
         return modelAndView;
@@ -374,29 +361,7 @@ public class MemberController {
         JSONObject responseJson = new JSONObject();
         responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
         return responseJson.toString();
-        // 내가 한 과제
-//        currentUser.setName(null)
-//                .setContactCountryValue(null)
-//                .setContact(null)
-//                .setPolicyTermsAt(null)
-//                .setPolicyPrivacyAt(null)
-//                .setPolicyMarketingAt(null)
-//                .setStatusValue(null)
-//                .setRegisteredAt(null)
-//                .setAdmin(false);
-//        if (changePassword == true && changeContact == true) {
-//            if (this.memberService.changeUserPassword(currentUser, oldPassword, newPassword) != CommonResult.SUCCESS ||
-//                    this.memberService.changeUserContact(currentUser, newContact, newContactAuthCode, newContactAuthSalt) != CommonResult.SUCCESS) {
-//                result = CommonResult.FAILURE;
-//            }
-//            result = CommonResult.SUCCESS;
-//        } else if (changePassword == true)  {
-//            result = this.memberService.changeUserPassword(currentUser, oldPassword, newPassword);
-//        } else if (changeContact == true) {
-//            result = this.memberService.changeUserContact(currentUser, newContact, newContactAuthCode, newContactAuthSalt);
-//        }
     }
-
 
     @RequestMapping(value = "userMyInfoAuth", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -419,7 +384,6 @@ public class MemberController {
         return responseJson.toString();
     }
 
-
     @RequestMapping(value = "userMyInfoAuth", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
     public String postUserMyInfoAuth(@RequestParam(value = "newContact") String newContact,
@@ -436,7 +400,6 @@ public class MemberController {
         return responseJson.toString();
     }
 }
-
 
 
 

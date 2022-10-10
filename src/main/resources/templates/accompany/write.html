@@ -5,6 +5,7 @@
     <title>드립소다 동행 글쓰기</title>
     <th:block th:insert="~{fragments/head.html :: content}"></th:block>
     <link rel="stylesheet" th:href="@{/accompany/resources/stylesheets/write.css}">
+    <script defer th:src="@{/resources/libraries/ckeditor/ckeditor.js}"></script>
     <script defer th:src="@{/accompany/resources/scripts/write.js}"></script>
 </head>
 <body class="_layout-hmf">
@@ -64,3 +65,4 @@
 <th:block th:replace="~{fragments/footer.html :: content}"></th:block>
 </body>
 </html>
+

@@ -48,3 +48,33 @@ const cover = {
         window.document.body.classList.add('_covering');
     }
 };
+
+const _writeButton = window.document.getElementById('_writeButton');
+const _writeMenu = window.document.getElementById('_writeMenu');
+
+_writeButton?.addEventListener('click', () => {
+    if (_writeMenu?.classList.contains('visible')) {
+        _writeMenu?.classList.remove('visible');
+    } else {
+        _writeMenu?.classList.add('visible');
+    }
+});
+_writeMenu?.addEventListener('mouseleave', () => {
+    _writeMenu?.classList.remove('visible');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

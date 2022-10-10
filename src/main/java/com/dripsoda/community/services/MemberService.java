@@ -65,7 +65,6 @@ public class MemberService {
         if (this.memberMapper.insertContactAuth(contactAuth) == 0) {
             // TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             // return CommonResult.FAILURE;
-            // 이렇게 할 시 롤백 구현 안하여도 트렌젝셔널이 적용된다.
             throw new RollbackException();
         }
         String smsContent = String.format("[드립소다] 인증번호 [%s]를 입력해 주세요.", contactAuth.getCode());
@@ -149,8 +148,8 @@ public class MemberService {
     @Transactional
     public IResult recoverUserEmailAuth(UserEntity user, ContactAuthEntity contactAuth) throws
             IOException,
-            NoSuchAlgorithmException,
             InvalidKeyException,
+            NoSuchAlgorithmException,
             RollbackException {
         if (user.getName() == null ||
                 user.getContact() == null ||
@@ -172,8 +171,8 @@ public class MemberService {
     @Transactional
     public IResult registerAuth(ContactAuthEntity contactAuth) throws
             IOException,
-            NoSuchAlgorithmException,
             InvalidKeyException,
+            NoSuchAlgorithmException,
             RollbackException {
         if (contactAuth.getContact() == null || !contactAuth.getContact().matches(MemberRegex.USER_CONTACT)) {
             return CommonResult.FAILURE;
@@ -211,8 +210,8 @@ public class MemberService {
 
     @Transactional
     public IResult recoverUserPassword(UserEntity user) throws
-            RollbackException,
-            MessagingException {
+            MessagingException,
+            RollbackException {
         if (user.getEmail() == null || !user.getEmail().matches(MemberRegex.USER_EMAIL)) {
             return CommonResult.FAILURE;
         }
@@ -234,7 +233,7 @@ public class MemberService {
         if (this.memberMapper.insertEmailAuth(emailAuth) == 0) {
             throw new RollbackException();
         }
-        final String from = "srtleehyun@gmail.com";
+        final String from = "inst.yhp@gmail.com";
         final String subject = "[드립소다] 비밀번호 재설정";
         final String viewName = "member/userRecoverPasswordMail";
         Context context = new Context();
@@ -279,78 +278,6 @@ public class MemberService {
         return CommonResult.SUCCESS;
     }
 
-// 내가 한 과제
-
-//    @Transactional
-//    public IResult changeUserPassword(UserEntity user, String oldPassword, String newPassword) throws
-//            RollbackException {
-//        if (user.getPassword() == null ||
-//                oldPassword == null ||
-//                !oldPassword.matches(MemberRegex.USER_PASSWORD)) {
-//            return CommonResult.FAILURE;
-//        }
-//        String hashOldPassword = CryptoUtils.hashSha512(oldPassword);
-//        if (!user.getPassword().equals(hashOldPassword)) {
-//            return UserLoginResult.PASSWORD_FAIL;
-//        }
-//
-//        String hashNewPassword = CryptoUtils.hashSha512(newPassword);
-//        UserEntity existingUser = this.memberMapper.selectUserByEmailPassword(user);
-//        user.setEmail(existingUser.getEmail())
-//                .setPassword(hashNewPassword)
-//                .setName(existingUser.getName())
-//                .setContactCountryValue(existingUser.getContactCountryValue())
-//                .setContact(existingUser.getContact())
-//                .setPolicyTermsAt(existingUser.getPolicyTermsAt())
-//                .setPolicyPrivacyAt(existingUser.getPolicyPrivacyAt())
-//                .setPolicyMarketingAt(existingUser.getPolicyMarketingAt())
-//                .setStatusValue(existingUser.getStatusValue())
-//                .setRegisteredAt(existingUser.getRegisteredAt())
-//                .setAdmin(existingUser.isAdmin());
-//        if (this.memberMapper.updateUser(user) == 0) {
-//            throw new RollbackException();
-//        }
-//        return CommonResult.SUCCESS;
-//    }
-
-//    @Transactional
-//    public IResult changeUserContact(UserEntity user, String contact, String contactAuthCode, String contactAuthSalt) throws
-//            RollbackException {
-//        ContactAuthEntity contactAuth = ContactAuthEntity.build();
-//        contactAuth.setContact(contact)
-//                .setCode(contactAuthCode)
-//                .setSalt(contactAuthSalt);
-//        if (contactAuth.getContact() == null ||
-//                contactAuth.getCode() == null ||
-//                contactAuth.getSalt() == null ||
-//                !contactAuth.getContact().matches(MemberRegex.USER_CONTACT) ||
-//                !contactAuth.getCode().matches(MemberRegex.CONTACT_AUTH_CODE) ||
-//                !contactAuth.getSalt().matches(MemberRegex.CONTACT_AUTH_SALT)) {
-//            return CommonResult.FAILURE;
-//        }
-//        contactAuth = this.memberMapper.selectContactAuthByContactCodeSalt(contactAuth);
-//        if (contactAuth == null) {
-//            return CommonResult.FAILURE;
-//        }
-//
-//        UserEntity existingUser = this.memberMapper.selectUserByEmailPassword(user);
-//        user.setEmail(existingUser.getEmail())
-//                .setPassword(existingUser.getPassword())
-//                .setName(existingUser.getName())
-//                .setContactCountryValue(existingUser.getContactCountryValue())
-//                .setContact(contactAuth.getContact())
-//                .setPolicyTermsAt(existingUser.getPolicyTermsAt())
-//                .setPolicyPrivacyAt(existingUser.getPolicyPrivacyAt())
-//                .setPolicyMarketingAt(existingUser.getPolicyMarketingAt())
-//                .setStatusValue(existingUser.getStatusValue())
-//                .setRegisteredAt(existingUser.getRegisteredAt())
-//                .setAdmin(existingUser.isAdmin());
-//        if (this.memberMapper.updateUser(user) == 0) {
-//            throw new RollbackException();
-//        }
-//        return CommonResult.SUCCESS;
-//    }
-
     @Transactional
     public IResult loginUser(UserEntity user) {
         if (user.getEmail() == null ||
@@ -384,21 +311,19 @@ public class MemberService {
     @Transactional
     public IResult modifyUser(UserEntity currentUser, UserEntity newUser, String oldPassword, ContactAuthEntity contactAuth) throws
             RollbackException {
-        if (currentUser == null ||
+        if (currentUser == null || oldPassword == null ||
                 currentUser.getPassword() == null ||
-                oldPassword == null ||
                 !CryptoUtils.hashSha512(oldPassword).equals(currentUser.getPassword())) {
             return CommonResult.FAILURE; // 현재 비밀번호 틀림
         }
         if (newUser.getPassword() != null && !newUser.getPassword().matches(MemberRegex.USER_PASSWORD)) {
             return CommonResult.FAILURE; // 신규 비밀번호 정규화 실패
         }
-        if (newUser.getContact() != null && (!newUser.getContact().matches(MemberRegex.USER_CONTACT) ||
-                this.checkContactAuth(contactAuth) != CommonResult.EXPIRED)) {
-            return CommonResult.EXPIRED; // 신규 연락처 정규화 실패 혹은 인증 실패
+        if (newUser.getContact() != null && (!newUser.getContact().matches(MemberRegex.USER_CONTACT) || this.checkContactAuth(contactAuth) != CommonResult.EXPIRED)) {
+            return CommonResult.FAILURE; // 신규 연락처 정규화 실패 혹은 인증 실패
         }
-        String oldCurrentPassword = currentUser.getPassword(); // Update 실패시 세션에 있는 객체가 가진 원래 가밧으로 되돌려놓기 위해 백업해놓아야함.
-        String oldCurrentContact = currentUser.getContact();
+        String oldCurrentPassword = currentUser.getPassword(); // Update 실패시 세션에 있는 객체가 가진 원래 값으로 되돌려 놓기 위해 백업 해놓아야함.
+        String oldCurrentContact = currentUser.getContact(); // 상동
         if (newUser.getPassword() != null) {
             currentUser.setPassword(CryptoUtils.hashSha512(newUser.getPassword()));
         }
@@ -414,7 +339,6 @@ public class MemberService {
         return CommonResult.SUCCESS;
     }
 
-    @Transactional
     public IResult modifyUserContactAuth(ContactAuthEntity contactAuth) throws
             InvalidKeyException,
             IOException,
@@ -430,3 +354,18 @@ public class MemberService {
         return this.createContactAuth(contactAuth);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

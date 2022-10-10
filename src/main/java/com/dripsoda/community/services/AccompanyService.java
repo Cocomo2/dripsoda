@@ -1,8 +1,8 @@
 package com.dripsoda.community.services;
 
-import com.dripsoda.community.entities.accompany.ContinentEntity;
-import com.dripsoda.community.entities.accompany.CountryEntity;
-import com.dripsoda.community.entities.accompany.RegionEntity;
+import com.dripsoda.community.entities.accompany.*;
+import com.dripsoda.community.enums.CommonResult;
+import com.dripsoda.community.interfaces.IResult;
 import com.dripsoda.community.mappers.IAccompanyMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,5 +26,21 @@ public class AccompanyService {
 
     public RegionEntity[] getRegions() {
         return this.accompanyMapper.selectRegions();
+    }
+
+    public ImageEntity getImage(int index) {
+        return this.accompanyMapper.selectImageByIndex(index);
+    }
+
+    public IResult uploadImage(ImageEntity image) {
+        return this.accompanyMapper.insertImage(image) > 0
+                ? CommonResult.SUCCESS
+                : CommonResult.FAILURE;
+    }
+
+    public IResult putArticle(ArticleEntity article) {
+        return this.accompanyMapper.insertArticle(article) > 0
+                ? CommonResult.SUCCESS
+                : CommonResult.FAILURE;
     }
 }

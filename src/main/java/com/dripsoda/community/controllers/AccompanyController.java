@@ -1,22 +1,30 @@
 package com.dripsoda.community.controllers;
 
-import com.dripsoda.community.entities.accompany.ContinentEntity;
-import com.dripsoda.community.entities.accompany.CountryEntity;
-import com.dripsoda.community.entities.accompany.RegionEntity;
+import com.dripsoda.community.entities.accompany.*;
 import com.dripsoda.community.entities.member.UserEntity;
+import com.dripsoda.community.enums.CommonResult;
+import com.dripsoda.community.interfaces.IResult;
 import com.dripsoda.community.services.AccompanyService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @Controller(value = "com.dripsoda.community.controllers.AccompanyController")
 @RequestMapping(value = "/accompany")
@@ -58,6 +66,70 @@ public class AccompanyController {
         }
         modelAndView.setViewName("accompany/write");
         return modelAndView;
+    }
+
+    @RequestMapping(value = "write", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postWrite(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME) UserEntity user,
+                            @RequestParam(value = "coverImageFile") MultipartFile coverImageFile,
+                            @RequestParam(value = "dateFromStr") String dateFromStr,
+                            @RequestParam(value = "dateToStr") String dateToStr,
+                            ArticleEntity article) throws
+            IOException,
+            ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        article.setIndex(-1)
+                .setUserEmail(user.getEmail())
+                .setCreatedAt(new Date())
+                .setCoverImage(coverImageFile.getBytes())
+                .setCoverImageMime(coverImageFile.getContentType())
+                .setDateFrom(dateFormat.parse(dateFromStr))
+                .setDateTo(dateFormat.parse(dateToStr));
+        IResult result = this.accompanyService.putArticle(article);
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        if (result == CommonResult.SUCCESS) {
+            responseJson.put("id", article.getIndex());
+        }
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "image/{id}", method = RequestMethod.GET)
+    public ResponseEntity<byte[]> getImage(@PathVariable(value = "id") int id) {
+        ImageEntity image = this.accompanyService.getImage(id);
+        if (image == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        String[] mimeArray = image.getMime().split("/"); // "image/png"
+        String mimeType = mimeArray[0]; // "image"
+        String mimeSubType = mimeArray[1]; // "png"
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(image.getData().length);
+        headers.setContentType(new MediaType(mimeType, mimeSubType, StandardCharsets.UTF_8));
+        return new ResponseEntity<>(image.getData(), headers, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "image", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postImage(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME) UserEntity user,
+                            @RequestParam(value = "upload") MultipartFile upload) throws
+            IOException {
+        ImageEntity image = ImageEntity.build()
+                .setUserEmail(user.getEmail())
+                .setCreatedAt(new Date())
+                .setName(upload.getOriginalFilename())
+                .setMime(upload.getContentType())
+                .setData(upload.getBytes());
+        IResult result = this.accompanyService.uploadImage(image);
+        JSONObject responseJson = new JSONObject();
+        if (result == CommonResult.SUCCESS) {
+            responseJson.put("url", String.format("http://localhost:8080/accompany/image/%d", image.getIndex()));
+        } else {
+            JSONObject errorJson = new JSONObject();
+            errorJson.put("message", "이미지 업로드에 실패하였습니다. 잠시 후 다시 시도해 주세요.");
+            responseJson.put("error", errorJson);
+        }
+        return responseJson.toString();
     }
 }
 

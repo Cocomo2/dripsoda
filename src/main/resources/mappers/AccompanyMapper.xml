@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dripsoda.community.mappers.IAccompanyMapper">
+    <insert id="insertImage"
+            useGeneratedKeys="true"
+            keyColumn="index"
+            keyProperty="index"
+            parameterType="com.dripsoda.community.entities.accompany.ImageEntity">
+        INSERT INTO `dripsoda_accompany`.`images` (`user_email`, `created_at`, `name`, `mime`, `data`)
+        VALUES (#{userEmail}, #{createdAt}, #{name}, #{mime}, #{data})
+    </insert>
+
+    <insert id="insertArticle"
+            useGeneratedKeys="true"
+            keyColumn="index"
+            keyProperty="index"
+            parameterType="com.dripsoda.community.entities.accompany.ArticleEntity">
+        INSERT INTO `dripsoda_accompany`.`articles` (`user_email`, `created_at`, `continent_value`, `country_value`, `region_value`, `capacity`, `date_from`, `date_to`, `cover_image`, `cover_image_mime`, `title`, `content`)
+        VALUES (#{userEmail}, #{createdAt}, #{continentValue}, #{countryValue}, #{regionValue}, #{capacity}, #{dateFrom}, #{dateTo}, #{coverImage}, #{coverImageMime}, #{title}, #{content})
+    </insert>
+
     <select id="selectContinents"
             resultType="com.dripsoda.community.entities.accompany.ContinentEntity">
         SELECT `value` AS `value`,
@@ -26,5 +44,18 @@
                `text`            AS `text`
         FROM `dripsoda_accompany`.`regions`
         ORDER BY `text`
+    </select>
+
+    <select id="selectImageByIndex"
+            resultType="com.dripsoda.community.entities.accompany.ImageEntity">
+        SELECT `index`      AS `index`,
+               `user_email` AS `userEmail`,
+               `created_at` AS `createdAt`,
+               `name`       AS `name`,
+               `mime`       AS `mime`,
+               `data`       AS `data`
+        FROM `dripsoda_accompany`.`images`
+        WHERE `index` = #{index}
+        LIMIT 1
     </select>
 </mapper>

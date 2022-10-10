@@ -230,7 +230,11 @@ form.onsubmit = e => {
 
 };
 
-
+ClassicEditor.create( form['content'], {
+    simpleUpload: {
+        uploadUrl: 'image'
+    }
+});
 
 
 
