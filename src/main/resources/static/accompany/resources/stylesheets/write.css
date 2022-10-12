@@ -223,6 +223,10 @@ body > .main > .form > .cover-image-container > .cover-image-preview {
     position: absolute;
 }
 
+body > .main > .form > .cover-image-container > .cover-image-preview:hover {
+    filter: contrast(50%) brightness(125%);
+}
+
 body > .main > .form > .content-container > .content {
     height: auto;
     min-height: 20rem;

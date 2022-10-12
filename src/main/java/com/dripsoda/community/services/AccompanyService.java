@@ -1,5 +1,6 @@
 package com.dripsoda.community.services;
 
+import com.dripsoda.community.dtos.accompany.ArticleSearchDto;
 import com.dripsoda.community.entities.accompany.*;
 import com.dripsoda.community.enums.CommonResult;
 import com.dripsoda.community.interfaces.IResult;
@@ -36,6 +37,14 @@ public class AccompanyService {
         return this.accompanyMapper.insertImage(image) > 0
                 ? CommonResult.SUCCESS
                 : CommonResult.FAILURE;
+    }
+
+    public ArticleEntity getArticle(int index) {
+        return this.accompanyMapper.selectArticleByIndex(index);
+    }
+
+    public ArticleSearchDto[] searchArticles(RegionEntity region, int lastArticleIndex) {
+        return this.accompanyMapper.selectArticlesForSearch(region, lastArticleIndex);
     }
 
     public IResult putArticle(ArticleEntity article) {

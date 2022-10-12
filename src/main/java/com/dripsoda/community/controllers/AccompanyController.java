@@ -1,5 +1,6 @@
 package com.dripsoda.community.controllers;
 
+import com.dripsoda.community.dtos.accompany.ArticleSearchDto;
 import com.dripsoda.community.entities.accompany.*;
 import com.dripsoda.community.entities.member.UserEntity;
 import com.dripsoda.community.enums.CommonResult;
@@ -19,8 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -42,6 +43,23 @@ public class AccompanyController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postIndex(@RequestParam(value = "lastArticleId") int lastArticleId,
+                            RegionEntity region) throws
+            JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JSONObject responseJson = new JSONObject();
+        ArticleSearchDto[] articles = this.accompanyService.searchArticles(region, lastArticleId);
+        for (ArticleSearchDto article : articles) {
+            article.setContent(article.getContent()
+                    .replaceAll("<[^>]*>", "")
+                    .replaceAll("&[^;]*;", ""));
+        }
+        responseJson.put(ArticleEntity.ATTRIBUTE_NAME_PLURAL, new JSONArray(objectMapper.writeValueAsString(articles)));
+        return responseJson.toString();
+    }
+
     @RequestMapping(value = "/", method = RequestMethod.PATCH, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public String patchIndex() throws
@@ -55,6 +73,21 @@ public class AccompanyController {
         responseJson.put(CountryEntity.ATTRIBUTE_NAME_PLURAL, countriesJson);
         responseJson.put(RegionEntity.ATTRIBUTE_NAME_PLURAL, regionsJson);
         return responseJson.toString();
+    }
+
+    @RequestMapping(value = "cover-image/{id}", method = RequestMethod.GET)
+    public ResponseEntity<byte[]> getCoverImage(@PathVariable(value = "id") int id) {
+        ArticleEntity article = this.accompanyService.getArticle(id);
+        if (article == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        String[] mimeArray = article.getCoverImageMime().split("/"); // "image/png"
+        String mimeType = mimeArray[0]; // "image"
+        String mimeSubType = mimeArray[1]; // "png"
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentLength(article.getCoverImage().length);
+        headers.setContentType(new MediaType(mimeType, mimeSubType, StandardCharsets.UTF_8));
+        return new ResponseEntity<>(article.getCoverImage(), headers, HttpStatus.OK);
     }
 
     @RequestMapping(value = "write", method = RequestMethod.GET)
@@ -129,6 +162,30 @@ public class AccompanyController {
             errorJson.put("message", "이미지 업로드에 실패하였습니다. 잠시 후 다시 시도해 주세요.");
             responseJson.put("error", errorJson);
         }
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "read/{id}", method = RequestMethod.GET)
+    public ModelAndView getRead(@PathVariable(value = "id") int id,
+                                ModelAndView modelAndView) {
+        modelAndView.setViewName("accompany/read");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "read/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postRead(@PathVariable(value = "id") int id,
+                           HttpServletResponse response) throws
+            JsonProcessingException {
+        ArticleEntity article = this.accompanyService.getArticle(id);
+        if (article == null) {
+            response.setStatus(404);
+            return null;
+        }
+        article.setCoverImage(null)
+                .setCoverImageMime(null);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JSONObject responseJson = new JSONObject(objectMapper.writeValueAsString(article));
         return responseJson.toString();
     }
 }

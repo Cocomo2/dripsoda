@@ -147,14 +147,117 @@ body > .main > .form > .date-container > .button {
     margin-left: 1rem;
 }
 
+body > .main > .accompany-container {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 2rem;
+}
 
+body > .main > .accompany-container > .accompany {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+}
 
+body > .main > .accompany-container > .accompany > * + * {
+    margin-top: 0.75rem;
+}
 
+body > .main > .accompany-container > .accompany > .cover-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 0.5rem;
+    object-fit: cover;
+    object-position: center;
+}
 
+body > .main > .accompany-container > .accompany > .location-container {
+    top: 0.75rem;
+    left: 0.75rem;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 62.5%);
+    border-radius: 999rem;
+    color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: row;
+    font-size: 0.9rem;
+    justify-content: flex-start;
+    margin-top: 0;
+    padding: 0.375rem 0.875rem 0.375rem 0.375rem;
+    pointer-events: none;
+    position: absolute;
+    z-index: 1;
+}
 
+body > .main > .accompany-container > .accompany > .location-container > .icon-container {
+    width: 1.425rem;
+    height: 1.425rem;
+    background-color: rgb(255, 255, 255);
+    border-radius: 50%;
+}
 
+body > .main > .accompany-container > .accompany > .location-container > .text {
+    margin-left: 0.5rem;
+}
 
+body > .main > .accompany-container > .accompany > .location-container > .duration {
+    display: none;
+    margin-left: 0.5rem;
+}
 
+body > .main > .accompany-container > .accompany > .cover-image:hover ~ .location-container > .duration {
+    display: inline-block;
+}
 
+body > .main > .accompany-container > .accompany > .title-container {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    font-size: 1.1rem;
+    font-weight: 500;
+    justify-content: flex-start;
+}
 
+body > .main > .accompany-container > .accompany > .title-container > .status {
+    color: rgb(var(--concept-color-green));
+    margin-right: 0.5rem;
+    white-space: nowrap;
+}
+
+body > .main > .accompany-container > .accompany > .title-container > .status.expired {
+    color: rgb(231, 76, 60);
+}
+
+body > .main > .accompany-container > .accompany > .title-container > .title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body > .main > .accompany-container > .accompany > .content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body > .main > .accompany-container > .accompany > .name {
+    font-size: 0.9rem;
+}
+
+body > .main > .more {
+    left: 50%;
+    border-radius: 999rem;
+    display: none;
+    font-size: 1.25rem;
+    margin-top: 2rem;
+    position: relative;
+    transform: translateX(-50%);
+}
+
+body > .main > .more.visible {
+    display: inline-block;
+}
 

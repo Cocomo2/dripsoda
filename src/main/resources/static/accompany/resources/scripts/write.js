@@ -226,11 +226,42 @@ form.onsubmit = e => {
         form['content'].focus();
         return false;
     }
+    cover.show('동행 글을 작성하고 있어요.\n\n잠시만 기다려 주세요.');
 
-
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('continentValue', getSelectedContinent()['value']);
+    formData.append('countryValue', getSelectedCountry()['value']);
+    formData.append('regionValue', getSelectedRegion()['value']);
+    formData.append('capacity', form['capacity'].value);
+    formData.append('dateFromStr', form['dateFrom'].value);
+    formData.append('dateToStr', form['dateTo'].value);
+    formData.append('title', form['title'].value);
+    formData.append('content', form['content'].value);
+    formData.append('coverImageFile', form['coverImage'].files[0])
+    xhr.open('POST', './write');
+    xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+            cover.hide();
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const responseJson = JSON.parse(xhr.responseText);
+                switch (responseJson['result']) {
+                    case 'success':
+                        const id = responseJson['id'];
+                        window.location.href = `./read/${id}`;
+                        break;
+                    default:
+                        warning.show('알 수 없는 이유로 동행 글을 작성하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+                }
+            } else {
+                warning.show('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
+            }
+        }
+    };
+    xhr.send(formData);
 };
 
-ClassicEditor.create( form['content'], {
+ClassicEditor.create(form['content'], {
     simpleUpload: {
         uploadUrl: 'image'
     }
