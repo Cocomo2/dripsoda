@@ -7,9 +7,13 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface IAccompanyMapper {
+    int deleteArticle(@Param(value = "index") int index);
+
     int insertImage(ImageEntity image);
 
     int insertArticle(ArticleEntity article);
+
+    int insertRequest(RequestEntity request);
 
     ArticleEntity selectArticleByIndex(@Param(value = "index") int index);
 
@@ -23,4 +27,9 @@ public interface IAccompanyMapper {
     RegionEntity[] selectRegions();
 
     ImageEntity selectImageByIndex(@Param(value = "index") int index);
+
+    RequestEntity selectRequestByRequesterArticleIndex(@Param(value = "requesterUserEmail") String requesteeUserEmail,
+                                                       @ Param(value = "articleIndex") int articleIndex);
+
+    int updateArticle(ArticleEntity article);
 }

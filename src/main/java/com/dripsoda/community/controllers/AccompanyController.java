@@ -6,6 +6,7 @@ import com.dripsoda.community.entities.member.UserEntity;
 import com.dripsoda.community.enums.CommonResult;
 import com.dripsoda.community.interfaces.IResult;
 import com.dripsoda.community.services.AccompanyService;
+import com.dripsoda.community.services.MemberService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
@@ -31,10 +32,12 @@ import java.util.Date;
 @RequestMapping(value = "/accompany")
 public class AccompanyController {
     private final AccompanyService accompanyService;
+    private final MemberService memberService;
 
     @Autowired
-    public AccompanyController(AccompanyService accompanyService) {
+    public AccompanyController(AccompanyService accompanyService, MemberService memberService) {
         this.accompanyService = accompanyService;
+        this.memberService = memberService;
     }
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -174,7 +177,8 @@ public class AccompanyController {
 
     @RequestMapping(value = "read/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String postRead(@PathVariable(value = "id") int id,
+    public String postRead(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                           @PathVariable(value = "id") int id,
                            HttpServletResponse response) throws
             JsonProcessingException {
         ArticleEntity article = this.accompanyService.getArticle(id);
@@ -186,6 +190,106 @@ public class AccompanyController {
                 .setCoverImageMime(null);
         ObjectMapper objectMapper = new ObjectMapper();
         JSONObject responseJson = new JSONObject(objectMapper.writeValueAsString(article));
+        UserEntity articleUser = this.memberService.getUser(article.getUserEmail());
+        responseJson.put("userName", articleUser.getName());
+        responseJson.put("mine", user != null && (user.isAdmin() || user.equals(articleUser)));
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "read/{id}", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String deleteRead(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                             @PathVariable(value = "id") int id) {
+        JSONObject responseJson = new JSONObject();
+        ArticleEntity article = this.accompanyService.getArticle(id);
+        if (article == null) {
+            responseJson.put(IResult.ATTRIBUTE_NAME, CommonResult.FAILURE);
+            return responseJson.toString();
+        }
+        if (user == null || !user.isAdmin() && !user.getEmail().equals(article.getUserEmail())) {
+            responseJson.put(IResult.ATTRIBUTE_NAME, "k");
+            return responseJson.toString();
+        }
+        IResult result = this.accompanyService.deleteArticle(id);
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "modify/{id}", method = RequestMethod.GET)
+    public ModelAndView getModify(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                                  @PathVariable(value = "id") int id,
+                                  ModelAndView modelAndView) {
+        if (user == null) {
+            modelAndView.setViewName("redirect:/member/userLogin");
+            return modelAndView;
+        }
+        modelAndView.setViewName("accompany/modify");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "modify/{id}", method = RequestMethod.PATCH, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String patchModify(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                              @PathVariable(value = "id") int id,
+                              HttpServletResponse response) throws
+            JsonProcessingException {
+        ArticleEntity article = this.accompanyService.getArticle(id);
+        if (article == null) {
+            response.setStatus(404);
+            return null;
+        }
+        if (user == null || !user.isAdmin() && !user.getEmail().equals(article.getUserEmail())) {
+            response.setStatus(403);
+            return null;
+        }
+        article.setCoverImage(null)
+                .setCoverImageMime(null);
+        return new ObjectMapper().writeValueAsString(article);
+    }
+
+    @RequestMapping(value = "modify/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postModify(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME) UserEntity user,
+                             @PathVariable(value = "id") int id,
+                             @RequestParam(value = "coverImageFile", required = false) MultipartFile coverImageFile,
+                             @RequestParam(value = "dateFromStr") String dateFromStr,
+                             @RequestParam(value = "dateToStr") String dateToStr,
+                             ArticleEntity article) throws
+            IOException,
+            ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        article.setIndex(id)
+                .setUserEmail(user.getEmail())
+                .setCoverImage(coverImageFile == null ? null : coverImageFile.getBytes())
+                .setCoverImageMime(coverImageFile == null ? null : coverImageFile.getContentType())
+                .setDateFrom(dateFormat.parse(dateFromStr))
+                .setDateTo(dateFormat.parse(dateToStr));
+        IResult result = this.accompanyService.modifyArticle(article);
+        JSONObject responseJson = new JSONObject();
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "request/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String getRequest(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME, required = false) UserEntity user,
+                             @PathVariable(value = "id") int id) {
+        JSONObject responseJson = new JSONObject();
+        if (user == null) {
+            responseJson.put(IResult.ATTRIBUTE_NAME, false);
+        } else {
+            responseJson.put(IResult.ATTRIBUTE_NAME, this.accompanyService.checkRequest(user, id));
+        }
+        return responseJson.toString();
+    }
+
+    @RequestMapping(value = "request/{id}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public String postRequest(@SessionAttribute(value = UserEntity.ATTRIBUTE_NAME) UserEntity user,
+                              @PathVariable(value = "id") int id) {
+        JSONObject responseJson = new JSONObject();
+        IResult result = this.accompanyService.putRequest(user, id);
+        responseJson.put(IResult.ATTRIBUTE_NAME, result.name().toLowerCase());
         return responseJson.toString();
     }
 }

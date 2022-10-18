@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.dripsoda.community.mappers.IAccompanyMapper">
+    <delete id="deleteArticle">
+        DELETE
+        FROM `dripsoda_accompany`.`articles`
+        WHERE `index` = #{index}
+        LIMIT 1
+    </delete>
     <insert id="insertImage"
             useGeneratedKeys="true"
             keyColumn="index"
@@ -15,8 +21,22 @@
             keyColumn="index"
             keyProperty="index"
             parameterType="com.dripsoda.community.entities.accompany.ArticleEntity">
-        INSERT INTO `dripsoda_accompany`.`articles` (`user_email`, `created_at`, `continent_value`, `country_value`, `region_value`, `capacity`, `date_from`, `date_to`, `cover_image`, `cover_image_mime`, `title`, `content`)
-        VALUES (#{userEmail}, #{createdAt}, #{continentValue}, #{countryValue}, #{regionValue}, #{capacity}, #{dateFrom}, #{dateTo}, #{coverImage}, #{coverImageMime}, #{title}, #{content})
+        INSERT INTO `dripsoda_accompany`.`articles` (`user_email`, `created_at`, `continent_value`, `country_value`,
+                                                     `region_value`, `capacity`, `date_from`, `date_to`, `cover_image`,
+                                                     `cover_image_mime`, `title`, `content`)
+        VALUES (#{userEmail}, #{createdAt}, #{continentValue}, #{countryValue}, #{regionValue}, #{capacity},
+                #{dateFrom}, #{dateTo}, #{coverImage}, #{coverImageMime}, #{title}, #{content})
+    </insert>
+
+    <insert id="insertRequest"
+            useGeneratedKeys="true"
+            keyColumn="index"
+            keyProperty="index"
+            parameterType="com.dripsoda.community.entities.accompany.RequestEntity">
+        INSERT INTO `dripsoda_accompany`.`requests` (`requester_user_email`, `requestee_user_email`, `article_index`,
+                                                     `created_at`, `granted_flag`, `declined_flag`)
+        VALUES (#{requesterUserEmail}, #{requesteeUserEmail}, #{articleIndex}, #{createdAt}, #{isGranted},
+                #{isDeclined})
     </insert>
 
     <select id="selectArticleByIndex"
@@ -40,8 +60,7 @@
     </select>
 
     <select id="selectArticlesForSearch"
-            resultType="com.dripsoda.community.dtos.accompany.ArticleSearchDto">
-        <![CDATA[
+            resultType="com.dripsoda.community.dtos.accompany.ArticleSearchDto"><![CDATA[
         SELECT `article`.`index`              AS `index`,
                `article`.`user_email`         AS `userEmail`,
                `article`.`created_at`         AS `createdAt`,
@@ -59,7 +78,7 @@
         WHERE `article`.`continent_value` = #{region.continentValue}
           AND `article`.`country_value` = #{region.countryValue}
           AND `article`.`region_value` LIKE IFNULL(#{region.value}, '%')
-          AND IF(#{lastArticleIndex} < 0, -2, `article`.`index`) < #{lastArticleIndex}
+          AND IF(#{lastArticleIndex} < 0, -2, `article`.`index` < #{lastArticleIndex})
         ORDER BY `article`.`index` DESC
         LIMIT 8
         ]]>
@@ -104,4 +123,38 @@
         WHERE `index` = #{index}
         LIMIT 1
     </select>
+
+    <select id="selectRequestByRequesterArticleIndex"
+            resultType="com.dripsoda.community.entities.accompany.RequestEntity">
+        SELECT `index`                AS `index`,
+               `requester_user_email` AS `requesterUserEmail`,
+               `requestee_user_email` AS `requesteeUserEmail`,
+               `article_index`        AS `articleIndex`,
+               `created_at`           AS `createdAt`,
+               `granted_flag`         AS `isGranted`,
+               `declined_flag`        AS `isDeclined`
+        FROM `dripsoda_accompany`.`requests`
+        WHERE `requester_user_email` = #{requesterUserEmail}
+          AND `article_index` = #{articleIndex}
+        LIMIT 1
+    </select>
+
+    <update id="updateArticle"
+            parameterType="com.dripsoda.community.entities.accompany.ArticleEntity">
+        UPDATE `dripsoda_accompany`.`articles`
+        SET `user_email`       = #{userEmail},
+            `created_at`       = #{createdAt},
+            `continent_value`  = #{continentValue},
+            `country_value`    = #{countryValue},
+            `region_value`     = #{regionValue},
+            `capacity`         = #{capacity},
+            `date_from`        = #{dateFrom},
+            `date_to`          = #{dateTo},
+            `cover_image`      = #{coverImage},
+            `cover_image_mime` = #{coverImageMime},
+            `title`            = #{title},
+            `content`          = #{content}
+        WHERE `index` = #{index}
+        LIMIT 1
+    </update>
 </mapper>

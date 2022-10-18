@@ -59,22 +59,8 @@ _writeButton?.addEventListener('click', () => {
         _writeMenu?.classList.add('visible');
     }
 });
+
 _writeMenu?.addEventListener('mouseleave', () => {
     _writeMenu?.classList.remove('visible');
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

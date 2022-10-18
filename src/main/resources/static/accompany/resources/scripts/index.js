@@ -3,6 +3,17 @@ let countries = [];
 let regions = [];
 
 const continentContainer = window.document.getElementById('continentContainer');
+
+const getSelectedRegion = () => {
+    const selectedContinent = getSelectedContinent()['value'];
+    const selectedCountry = getSelectedCountry()['value'];
+    const selectedRegion = subContainer.querySelector('.region[selected]')?.dataset.value ?? null;
+    if (selectedRegion === null) {
+        return null;
+    }
+    return regions.find(x => x['continentValue'] === selectedContinent && x['countryValue'] === selectedCountry && x['value'] === selectedRegion);
+};
+
 const drawContinents = () => {
     continentContainer.innerHTML = '';
     continents.forEach(continent => {
@@ -23,12 +34,14 @@ const drawContinents = () => {
         .querySelector(':scope > .continent:first-of-type')
         .setAttribute('selected', 'selected');
 };
+
 const getSelectedContinent = () => {
     const selectedValue = continentContainer
         .querySelector(':scope > .continent[selected]')
-        ?.dataset.value;
+        .dataset.value;
     return continents.find(x => x['value'] === selectedValue);
 };
+
 const setSelectedContinent = (value) => {
     continentContainer
         .querySelectorAll(':scope > .continent')
@@ -68,11 +81,7 @@ const drawSubs = (continent) => {
                         if (e.target.getAttribute('selected') === 'selected') {
                             return;
                         }
-                        setSelectedCountry(e.target
-                            .parentNode
-                            .parentNode
-                            .querySelector('.country[data-value]')
-                            .dataset.value);
+                        setSelectedCountry(e.target.parentNode.parentNode.querySelector('.country[data-value]').dataset.value);
                         setSelectedRegion(e.target.dataset.value);
                     });
                     regionContainerElement.append(regionElement);
@@ -85,6 +94,7 @@ const drawSubs = (continent) => {
         .querySelector(':scope > .sub:first-of-type > .country')
         .setAttribute('selected', 'selected');
 };
+
 const getSelectedCountry = () => {
     const selectedContinent = getSelectedContinent();
     const selectedCountryElement = subContainer.querySelector('.country[data-value][selected]');
@@ -92,39 +102,22 @@ const getSelectedCountry = () => {
         x['continentValue'] === selectedContinent['value'] &&
         x['value'] === selectedCountryElement.dataset.value);
 };
+
 const setSelectedCountry = (value) => {
-    subContainer
-        .querySelectorAll('.region[data-value]')
-        .forEach(x => x.removeAttribute('selected'));
-    subContainer
-        .querySelectorAll('.country[data-value]')
-        .forEach(x => x.removeAttribute('selected'));
-    subContainer
-        .querySelector(`.country[data-value="${value}"]`)
-        ?.setAttribute('selected', 'selected');
+    subContainer.querySelectorAll('.region[data-value]').forEach(x => x.removeAttribute('selected'));
+    subContainer.querySelectorAll('.country[data-value]').forEach(x => x.removeAttribute('selected'));
+    subContainer.querySelector(`.country[data-value="${value}"]`)?.setAttribute('selected', 'selected');
 };
-const getSelectedRegion = () => {
-    const selectedContinent = getSelectedContinent()['value'];
-    const selectedCountry = getSelectedCountry()['value'];
-    const selectedRegion = subContainer.querySelector('.region[selected]')?.dataset.value ?? null;
-    if (selectedRegion === null) {
-        return null;
-    }
-    return regions.find(x =>
-        x['continentValue'] === selectedContinent &&
-        x['countryValue'] === selectedCountry &&
-        x['value'] === selectedRegion);
-};
+
 const setSelectedRegion = (value) => {
-    subContainer
-        .querySelectorAll('.region[data-value]')
-        .forEach(x => x.removeAttribute('selected'));
+    subContainer.querySelectorAll('.region[data-value]').forEach(x => x.removeAttribute('selected'));
     const selectedCountryValue = getSelectedCountry()['value'];
     subContainer.querySelector(`.country[data-value=${selectedCountryValue}]`)
         .parentNode
         .querySelector(`.region[data-value="${value}"]`)
         .setAttribute('selected', 'selected');
 };
+
 const accompanyContainer = window.document.getElementById('accompanyContainer');
 const appendSearch = () => {
     const selectedContinent = getSelectedContinent();
@@ -135,7 +128,7 @@ const appendSearch = () => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
     formData.append('continentValue', selectedContinent['value']);
-    formData.append('countryValue', selectedCountry['value']);
+    formData.append('countryValue', selectedCountry['value'])
     formData.append('lastArticleId', lastArticleId);
     if (selectedRegion !== null && selectedRegion !== undefined) {
         formData.append('value', selectedRegion['value']);
@@ -157,11 +150,11 @@ const appendSearch = () => {
                     accompanyElement.dataset.id = article['index'];
                     accompanyElement.setAttribute('href', `./read/${article['index']}`);
 
+
                     const imgElement = window.document.createElement('img');
                     imgElement.classList.add('cover-image');
                     imgElement.setAttribute('alt', '');
                     imgElement.setAttribute('src', `./cover-image/${article['index']}`);
-
                     const locationContainerElement = window.document.createElement('span');
                     locationContainerElement.classList.add('location-container');
                     const locationIconContainerElement = window.document.createElement('span');
@@ -180,7 +173,6 @@ const appendSearch = () => {
                     locationDurationElement.classList.add('duration');
                     locationDurationElement.innerText = `${dateFromText} - ${dateToText}`;
                     locationContainerElement.append(locationIconContainerElement, locationTextElement, locationDurationElement);
-
                     const titleContainerElement = window.document.createElement('span');
                     titleContainerElement.classList.add('title-container');
                     const titleStatusElement = window.document.createElement('span');
@@ -189,7 +181,7 @@ const appendSearch = () => {
                         titleStatusElement.classList.add('expired');
                         titleStatusElement.innerText = '모집 마감';
                     } else {
-                        titleStatusElement.innerText = '모집중';
+                        titleStatusElement.innerText ='모집중';
                     }
                     const titleTitleElement = window.document.createElement('span');
                     titleTitleElement.classList.add('title');
@@ -236,7 +228,7 @@ xhr.onreadystatechange = () => {
             regions = responseJson['accompanyRegions'];
             drawContinents();
             drawSubs(getSelectedContinent());
-            appendSearch();
+            appendSearch(lastArticleId);
         } else {
             alert('서버와 통신하지 못하였습니다. 잠시 후 다시 시도해 주세요.');
             window.history.back();
@@ -257,17 +249,3 @@ const more = window.document.getElementById('more');
 more.addEventListener('click', () => {
     appendSearch();
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,5 @@
-<!--suppress HtmlRequiredTitleElement, HtmlUnknownTag, RequiredAttributes -->
-<!DOCTYPE html>
+<!-- suppress HtmlRequiredTitleElement -->
+<!doctype html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <header class="_header _content-wrapper" th:fragment="content">
     <div class="_content-container content-container">
@@ -11,13 +11,12 @@
                 </a>
             </li>
             <li class="item">
-                <a class="link" th:href="@{/qna/write}">
+                <a class="link" th:href="@{/accompany/write}">
                     <i class="icon fa-solid fa-circle-question"></i>
                     <span class="text">여행 질문하기</span>
                 </a>
             </li>
         </ul>
-
         <a class="logo-container" th:href="@{/}">
             <img alt="드립소다" class="logo" th:src="@{/resources/images/_logo.svg}">
         </a>
@@ -36,7 +35,7 @@
             <label class="input-container">
                 <span hidden>여행 qna을 검색해보세요!</span>
                 <i class="icon fa-solid fa-magnifying-glass"></i>
-                <input class="input" maxlength="50" name="keyword" placeholder="여행 qna을 검색해보세요!" type="text">
+                <input class="input" max="50" name="keyword" placeholder="여행 qna을 검색해보세요!" type="text">
             </label>
         </form>
         <ul class="side-menu">
@@ -46,7 +45,6 @@
             <li class="item" th:if="${session.memberUser == null}">
                 <a class="link" th:href="@{/member/userRegister}">회원가입</a>
             </li>
-
             <li class="item" th:if="${session.memberUser != null}">
                 <a class="link" th:href="@{/member/userLogout}">로그아웃</a>
             </li>
